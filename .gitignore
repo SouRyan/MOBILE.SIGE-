@@ -1,0 +1,109 @@
+# -------------------------------------------------------------------
+# .NET / Visual Studio / Windows (para projetos ASP.NET/Blazor)
+# -------------------------------------------------------------------
+
+# Build results
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug*/
+**/[Rr]elease*/
+**/[Xx]64/
+**/[Xx]86/
+**/[Aa][Rr][Mm]/
+**/[Aa][Rr][Mm]64/
+**/[Ll]og[s]/
+*.log
+
+# Visual Studio / Rider / VS Code
+.vs/
+**/.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+
+.idea/
+*.sln.iml
+
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# OS files
+[Tt]humbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# -------------------------------------------------------------------
+# NuGet / dotnet tooling
+# -------------------------------------------------------------------
+**/packages/
+*.nupkg
+*.snupkg
+*.nuspec
+**/project.lock.json
+**/project.fragment.lock.json
+**/artifacts/
+
+# dotnet tool / workload caches (local only)
+.dotnet/
+
+# -------------------------------------------------------------------
+# Test results / coverage
+# -------------------------------------------------------------------
+TestResults/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+**/coverage/
+**/coverage-report/
+
+# -------------------------------------------------------------------
+# ASP.NET Core / user secrets / certificates / environment configs
+# -------------------------------------------------------------------
+**/secrets.json
+**/*.secrets.json
+
+# appsettings por ambiente normalmente não deve ser versionado (pode conter segredos)
+appsettings.*.json
+!appsettings.json
+
+# Extras comuns (caso existam)
+*.pfx
+*.p12
+*.pem
+*.key
+
+# -------------------------------------------------------------------
+# Publish output
+# -------------------------------------------------------------------
+**/publish/
+**/app.publish/
+
+# -------------------------------------------------------------------
+# Front-end (caso haja bundling/Node)
+# -------------------------------------------------------------------
+**/node_modules/
+**/dist/
+**/build/
+**/.cache/
+**/.parcel-cache/
+
+# -------------------------------------------------------------------
+# Temporary files
+# -------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.swp
+*.DS_Store
+
