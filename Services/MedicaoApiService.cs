@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using API.SIGE.DTOs;
+using MOBILE.SIGE.Models.Medicao;
 
 namespace API.SIGE.ApiServices;
 

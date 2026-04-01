@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using ;
+using MOBILE.SIGE.Models.Caixilho;
 
 namespace API.SIGE.ApiServices;
 

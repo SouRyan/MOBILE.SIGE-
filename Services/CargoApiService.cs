@@ -1,5 +1,6 @@
+using MOBILE.SIGE.Models.Cargo;
 using System.Net.Http.Json;
-using API.SIGE.DTOs;
+
 
 namespace API.SIGE.ApiServices;
 

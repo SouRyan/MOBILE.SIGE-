@@ -1,6 +1,7 @@
+using MOBILE.SIGE.Models.Enums;
+using MOBILE.SIGE.Models.Usuario;
 using System.Net.Http.Json;
-using API.SIGE.DTOs;
-using API.SIGE.Model;
+
 
 namespace API.SIGE.ApiServices;
 

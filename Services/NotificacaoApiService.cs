@@ -1,7 +1,7 @@
+using MOBILE.SIGE.Models.Notificacao;
 using System.Net.Http.Json;
-using API.SIGE.DTOs;
 
-namespace API.SIGE.ApiServices;
+namespace MOBILE.SIGE.ApiServices;
 
 public class NotificacaoApiService
 {

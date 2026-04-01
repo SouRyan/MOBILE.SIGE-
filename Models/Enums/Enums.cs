@@ -46,3 +46,10 @@ public enum TipoNotificacao
     FamiliaProduzida = 3,
     ObraConcluida = 4
 }
+
+public enum StatusProducao
+{
+    Pendente = 1,
+    EmProducao = 2,
+    Produzida = 3
+}

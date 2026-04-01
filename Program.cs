@@ -1,5 +1,6 @@
 using API.SIGE.ApiServices;
 using Microsoft.AspNetCore.Components.Authorization;
+using MOBILE.SIGE.ApiServices;
 using MOBILE.SIGE.Components;
 using MOBILE.SIGE.Interfaces;
 using MOBILE.SIGE.Services;
@@ -19,16 +20,12 @@ builder.Services.AddAuthorizationCore();
 
 // HttpClient com JWT handler
 builder.Services.AddScoped<JwtAuthHandler>();
-builder.Services.AddScoped(sp =>
+
+builder.Services.AddHttpClient("ApiSige", client =>
 {
-    var handler = sp.GetRequiredService<JwtAuthHandler>();
-    handler.InnerHandler = new HttpClientHandler();
-    return new HttpClient(handler)
-    {
-        BaseAddress = new Uri(builder.Configuration["ApiSige:BaseUrl"]
-            ?? "http://localhost:5075/")
-    };
-});
+    client.BaseAddress = new Uri(builder.Configuration["ApiSige:BaseUrl"] ?? "http://localhost:5075/");
+})
+.AddHttpMessageHandler<JwtAuthHandler>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
