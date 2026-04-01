@@ -1,0 +1,32 @@
+﻿@page "/recuperar"
+@inject NavigationManager Nav
+
+<div class="login-container recuperar">
+
+    <h1 class="logo">SIGE</h1>
+    <p class="subtitle">Sistema Integrado de Gerenciamento</p>
+
+    <p class="description">
+        Insira o e-mail corporativo para receber o código e recuperar sua senha
+    </p>
+
+    <div class="input-group">
+        <img src="icons/email.svg" class="icon-img" />
+        <input type="text" placeholder="Email" class="input" />
+    </div>
+
+    <button class="btn" @onclick="IrCodigo">Enviar código</button>
+
+    <p class="link" @onclick="IrLogin">Voltar para login</p>
+
+    <p class="version">
+        Versão 1.0.0 <br />
+        © 2026 Sistema de Esquadrias. Todos os direitos reservados.
+    </p>
+
+</div>
+
+@code {
+    void IrLogin() => Nav.NavigateTo("/login");
+    void IrCodigo() => Nav.NavigateTo("/codigo");
+}
