@@ -1,0 +1,20 @@
+using System.Net.Http.Json;
+using API.SIGE.DTOs;
+
+namespace API.SIGE.ApiServices;
+
+public class DashboardApiService
+{
+    private readonly HttpClient _http;
+
+    public DashboardApiService(IHttpClientFactory factory)
+    {
+        _http = factory.CreateClient("ApiSige");
+    }
+
+    public async Task<DashboardMetricasDto?> GetMetricasAsync()
+        => await _http.GetFromJsonAsync<DashboardMetricasDto>("api/dashboard/metricas");
+
+    public async Task<HttpResponseMessage> AtualizarProgressoObrasAsync()
+        => await _http.PostAsync("api/dashboard/atualizar-progresso-obras", null);
+}
