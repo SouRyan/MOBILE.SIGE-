@@ -1,5 +1,6 @@
 ﻿@page "/dashboard"
 
+
 <div class="dashboard">
 
     <!-- TOPO -->
@@ -65,9 +66,7 @@
         </div>
     </div>
 
-
     <!-- ALERTAS -->
-
     <div class="alertas">
 
         <div class="alertas-header">
@@ -89,11 +88,11 @@
 
         <div class="alerta-item">
             <span class="bolinha yellow"></span>
-            <span class="texto">#248 - Edificíl  Legal - Entrega 18/04/2026</span>
+            <span class="texto">#248 - Edificíl Legal - Entrega 18/04/2026</span>
             <span class="status yellow">ENTREGA PRÓXIMA</span>
         </div>
-    </div>
 
+    </div>
 
     <!-- OBRAS -->
     <div class="obras">
@@ -104,7 +103,6 @@
         </div>
 
         <div class="obra-item">
-
             <div class="obra-linha">
                 <span class="obra-nome">#248 - Edifício Barnabé</span>
                 <span class="tag yellow">Em produção</span>
@@ -113,12 +111,9 @@
             <div class="barra">
                 <div class="progresso yellow"></div>
             </div>
-
         </div>
 
-
         <div class="obra-item">
-
             <div class="obra-linha">
                 <span class="obra-nome">#345 - Residência Vila Verde</span>
                 <span class="tag red">Atrasada</span>
@@ -127,11 +122,9 @@
             <div class="barra">
                 <div class="progresso red"></div>
             </div>
-
         </div>
 
         <div class="obra-item">
-
             <div class="obra-linha">
                 <span class="obra-nome">#231 - Edifício Oba</span>
                 <span class="tag green">Concluído</span>
@@ -140,29 +133,33 @@
             <div class="barra">
                 <div class="progresso green"></div>
             </div>
-
         </div>
-    </div>
-
-
-    <!-- MENU -->
-
-    <div class="menu">
-
-        <div class="menu-item active">
-            <img src="Icons/Analytics.svg" class="card-icon" />
-        </div>
-
-        <div class="menu-item"></div>
-        <div class="menu-item"></div>
-        <div class="menu-item"></div>
 
     </div>
 
+<!-- MENU -->
+<div class="menu">
 
+    <!-- Dashboard -->
+    <NavLink href="/dashboard" class="menu-item" ActiveClass="active">
+        <img src="Icons/Analytics.svg" class="card-icon" />
+    </NavLink>
+
+    <!-- Obras -->
+    <NavLink href="/obras" class="menu-item" ActiveClass="active">
+        <img src="Icons/Roadblock.svg" class="card-icon" />
+    </NavLink>
+
+    <!-- Medição -->
+    <NavLink href="/medicao" class="menu-item" ActiveClass="active">
+        <img src="Icons/Wrench.svg" class="card-icon" />
+    </NavLink>
+
+    <!-- Conferência -->
+    <NavLink href="/conferencia" class="menu-item" ActiveClass="active">
+        <img src="Icons/Check Mark.svg" class="card-icon" />
+    </NavLink>
 
 </div>
 
-
-
-
+</div>

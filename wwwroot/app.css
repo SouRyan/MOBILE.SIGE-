@@ -11,8 +11,8 @@ html, body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 40px 25px 20px;
+    justify-content: flex-start;
+    padding: 50px 25px 20px;
     color: #FFFFFF;
     font-family: 'Anek Bangla', sans-serif;
 }
@@ -48,6 +48,10 @@ html, body {
     align-items: center;
     border-bottom: 1px solid #FFFFFF;
     margin-bottom: 30px;
+}
+
+.input-group:first-of-type {
+    margin-top: 50px;
 }
 
 .input {
@@ -95,11 +99,13 @@ html, body {
     margin-top: 50px;
     color: #888;
     line-height: 1.6;
+    margin-top: 180px;
 }
 /* ===== RECUPERAR SENHA (ISOLADO) ===== */
 
 .recuperar {
-    justify-content: center;
+    justify-content: flex-start; /* ← sobe tudo */
+    padding-top: 60px; /* ← controla a altura */
 }
 
     .recuperar .description {
@@ -124,12 +130,13 @@ html, body {
     }
 
     .recuperar .version {
-        margin-top: 50px;
+        margin-top: 180px;
     }
 /* ===== CODIGO ===== */
 
 .codigo {
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top:190px;
     align-items: center;
     text-align: center;
 }
@@ -190,6 +197,13 @@ html, body {
         color: #42FFFC;
         font-weight: 500;
     }
+
+
+
+
+
+
+
 /* ===== DASHBOARD ===== */
 
 .dashboard {
@@ -250,7 +264,8 @@ html, body {
 .cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 5px;
+    margin-top: 15px;
 }
 
     /* AZUL */
@@ -333,7 +348,7 @@ html, body {
 
 .meta {
     background: linear-gradient(135deg, #000000 26%, #13458F 100%);
-    width: 368px;
+    width: 98%;
     height: 78px;
     padding: 12px;
     border-radius: 12px;
@@ -364,9 +379,16 @@ html, body {
         width: 100%;
     }
 
+
 /* OBRAS */
+
+.obras {
+    width: 98% !important;
+    margin: 15px auto 0;
+}
+
 .obras .barra {
-    width: 70%;
+    width: 50%;
     height: 4px;
     background: rgba(255,255,255,0.1);
     border-radius: 10px;
@@ -397,7 +419,7 @@ html, body {
 
 .alertas {
     background: linear-gradient(135deg, #000000 26%, #13458F 100%);
-    width: 368px; /* ← igual ao meta */
+    width: 98%; /* ← igual ao meta */
     border-radius: 12px;
     margin: 15px auto 0; /* ← centraliza igual */
     padding: 12px;
@@ -823,6 +845,34 @@ html, body {
         color: white;
     }
 
+
+/* BASE */
+.menu-item {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.08);
+    opacity: 0.5; /* ← apagado */
+    transition: all 0.3s ease;
+}
+
+    /* ATIVO */
+    .menu-item.active {
+        opacity: 1;
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.6);
+        transform: scale(1.15); /* ← fica maior */
+    }
+
+    /* ÍCONE */
+    .menu-item img {
+        width: 20px;
+        height: 20px;
+        filter: brightness(0) invert(1);
+    }
 
 
 
