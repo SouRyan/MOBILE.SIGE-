@@ -1,5 +1,9 @@
 ﻿@page "/dashboard"
+@using MOBILE.SIGE.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Nav
 
+<button @onclick="Logout">Logout</button>
 <div class="dashboard">
 
     <!-- TOPO -->
@@ -165,4 +169,16 @@
 
 
 
+
+
+@code {
+    //private bool _isAuthenticated;
+    //private bool _loading = true;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}
 

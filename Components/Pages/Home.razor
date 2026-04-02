@@ -1,7 +1,22 @@
-﻿@page "/"
-
+@page "/"
+@using MOBILE.SIGE.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Nav
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<button @onclick="Logout">Logout</button>
+
+@code {
+    //private bool _isAuthenticated;
+    //private bool _loading = true;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}
