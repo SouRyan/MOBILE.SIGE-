@@ -1,11 +1,112 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@using MOBILE.SIGE.Interfaces
+@implements IDisposable
 
+<<<<<<< HEAD
 <div>
     @Body
+=======
+<div class="page">
+    <main>
+        <article class="content px-4">
+            @if (_loading)
+            {
+                <p>Carregando...</p>
+            }
+            else
+            {
+                @Body
+            }
+        </article>
+    </main>
+>>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
+<<<<<<< HEAD
 </div>
+=======
+</div>
+
+@code {
+    private bool _loading = true;
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CheckAuthAsync();
+        }
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        await InvokeAsync(CheckAuthAsync);
+    }
+
+    private async Task CheckAuthAsync()
+    {
+        try
+        {
+            var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            _loading = false;
+
+            if (!isAuthenticated && !IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage())
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
+            StateHasChanged();
+        }
+        catch
+        {
+            _loading = false;
+            if (!IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage())
+            {
+                Nav.NavigateTo("/login");
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private bool IsLoginPage()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri);
+        return relative.Equals("login", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("login/", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("login?", StringComparison.OrdinalIgnoreCase);
+    }
+    private bool IsRecuperarSenhaPage()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri);
+        return relative.Equals("recuperar", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("recuperar/", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("recuperar?", StringComparison.OrdinalIgnoreCase);
+    }
+    private bool IsCodigoPage()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri);
+        return relative.Equals("codigo", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("codigo/", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("codigo?", StringComparison.OrdinalIgnoreCase);
+    }
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}
+>>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d

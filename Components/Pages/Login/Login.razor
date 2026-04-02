@@ -1,0 +1,88 @@
+@page "/login"
+@using MOBILE.SIGE.Models.Login
+@using MOBILE.SIGE.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+<div class="login-container">
+
+    <h1 class="logo">SIGE</h1>
+    <p class="subtitle">Sistema Integrado de Gerenciamento</p>
+
+    <h3 class="welcome">Bem-vindo</h3>
+
+    <EditForm Model="_model" OnValidSubmit="EntrarAsync">
+        <DataAnnotationsValidator />
+
+        <div class="input-group">
+            <img src="Icons/Email.svg" class="icon-img" />
+            <InputText type="email" @bind-Value="_model.Email" placeholder="Email" class="input" />
+        </div>
+        <ValidationMessage For="@(() => _model.Email)" />
+
+        <div class="input-group">
+            <img src="Icons/Lock.svg" class="icon-img" />
+            <InputText type="password" @bind-Value="_model.Senha" placeholder="Senha" class="input" />
+        </div>
+        <ValidationMessage For="@(() => _model.Senha)" />
+
+        @if (!string.IsNullOrWhiteSpace(_erroLogin))
+        {
+            <p class="text-danger mt-2 mb-0">@_erroLogin</p>
+        }
+
+        <button class="btn" type="submit" disabled="@_carregando">
+            @(_carregando ? "Entrando..." : "ENTRAR")
+        </button>
+    </EditForm>
+
+    <p class="link" @onclick="IrRecuperarSenha" style="cursor:pointer;" >Esqueceu a senha?</p>
+
+    <p class="version">
+        Versão 1.0.0 <br />
+        © 2026 Sistema de Esquadrias. Todos os direitos reservados.
+    </p>
+
+</div>
+
+@code {
+    private readonly LoginRequest _model = new();
+    private bool _carregando;
+    private string? _erroLogin;
+    private string? _email;
+
+    private async Task EntrarAsync()
+    {
+        _erroLogin = null;
+        _carregando = true;
+
+        try
+        {
+            var response = await AuthService.LoginAsync(_model);
+
+            if (response is not null && response.Success)
+            {
+
+                Nav.NavigateTo("/dashboard", forceLoad: false);
+                return;
+            }
+
+            _erroLogin = string.IsNullOrWhiteSpace(response?.Message)
+                ? "Não foi possível realizar o login."
+                : response.Message;
+        }
+        catch (Exception ex)
+        {
+            _erroLogin = $"Erro ao conectar com a API: {ex.Message}";
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private void IrRecuperarSenha()
+    {
+        Nav.NavigateTo("/recuperar");
+    }
+}

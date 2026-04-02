@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿@page "/"
 
 @inject NavigationManager Nav
@@ -8,3 +9,27 @@
         Nav.NavigateTo("/login", true);
     }
 }
+=======
+@page "/"
+@using MOBILE.SIGE.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="Logout">Logout</button>
+
+@code {
+    //private bool _isAuthenticated;
+    //private bool _loading = true;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}
+>>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d

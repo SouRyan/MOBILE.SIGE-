@@ -1,0 +1,215 @@
+@page "/teste-api"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Dashboard
+@using MOBILE.SIGE.Models.Obra
+@inject DashboardApiService DashboardService
+@inject ObraApiService ObraService
+
+<div style="padding: 1.5rem; font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
+
+    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Teste de Conexão</h1>
+    <p style="color: #888; font-size: 0.85rem; margin-bottom: 1.5rem;">Verificando comunicação com a API SIGE</p>
+
+    <!-- STATUS GERAL -->
+    <div style="border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+                background: @(statusCor); color: white; text-align: center;">
+        <p style="font-size: 2rem; margin: 0;">@statusIcone</p>
+        <p style="font-size: 1.1rem; font-weight: 600; margin: 0.5rem 0 0.25rem;">@statusTitulo</p>
+        <p style="font-size: 0.8rem; opacity: 0.9; margin: 0;">@statusDetalhe</p>
+    </div>
+
+    @if (carregando)
+    {
+        <div style="text-align: center; padding: 2rem;">
+            <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid #e0e0e0;
+                        border-top-color: #4f46e5; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <p style="color: #888; margin-top: 0.75rem; font-size: 0.9rem;">Consultando API...</p>
+        </div>
+    }
+    else
+    {
+        <!-- ENDPOINT: METRICAS -->
+        <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600; font-size: 0.9rem;">GET /api/dashboard/metricas</span>
+                <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 6px;
+                            background: @(metricas != null ? "#dcfce7" : "#fee2e2");
+                            color: @(metricas != null ? "#166534" : "#991b1b");">
+                    @(metricas != null ? "200 OK" : "ERRO")
+                </span>
+            </div>
+            @if (metricas != null)
+            {
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <div style="background: #f0f4ff; border-radius: 8px; padding: 0.6rem; text-align: center;">
+                        <p style="font-size: 1.25rem; font-weight: 700; color: #4f46e5; margin: 0;">@metricas.TotalObras</p>
+                        <p style="font-size: 0.7rem; color: #666; margin: 0;">Obras</p>
+                    </div>
+                    <div style="background: #fef9e7; border-radius: 8px; padding: 0.6rem; text-align: center;">
+                        <p style="font-size: 1.25rem; font-weight: 700; color: #d97706; margin: 0;">@metricas.ObrasEmAndamento</p>
+                        <p style="font-size: 0.7rem; color: #666; margin: 0;">Em andamento</p>
+                    </div>
+                    <div style="background: #f0fdf4; border-radius: 8px; padding: 0.6rem; text-align: center;">
+                        <p style="font-size: 1.25rem; font-weight: 700; color: #16a34a; margin: 0;">@metricas.TotalCaixilhos</p>
+                        <p style="font-size: 0.7rem; color: #666; margin: 0;">Caixilhos</p>
+                    </div>
+                    <div style="background: #fdf2f8; border-radius: 8px; padding: 0.6rem; text-align: center;">
+                        <p style="font-size: 1.25rem; font-weight: 700; color: #be185d; margin: 0;">@metricas.TotalUsuarios</p>
+                        <p style="font-size: 0.7rem; color: #666; margin: 0;">Usuários</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p style="color: #991b1b; font-size: 0.8rem; margin: 0;">@erroMetricas</p>
+            }
+        </div>
+
+        <!-- ENDPOINT: OBRAS -->
+        <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600; font-size: 0.9rem;">GET /api/obra</span>
+                <span style="font-size: 0.75rem; padding: 2px 8px; border-radius: 6px;
+                            background: @(obras != null ? "#dcfce7" : "#fee2e2");
+                            color: @(obras != null ? "#166534" : "#991b1b");">
+                    @(obras != null ? "200 OK" : "ERRO")
+                </span>
+            </div>
+            @if (obras != null)
+            {
+                <p style="font-size: 0.8rem; color: #555; margin: 0 0 0.5rem;">@obras.Count obra(s) encontrada(s)</p>
+                @foreach (var obra in obras.Take(5))
+                {
+                    <div style="display: flex; justify-content: space-between; align-items: center;
+                                padding: 0.5rem 0; border-top: 1px solid #f0f0f0;">
+                        <div>
+                            <p style="font-weight: 600; font-size: 0.85rem; margin: 0;">@obra.Nome</p>
+                            <p style="font-size: 0.7rem; color: #888; margin: 0;">@obra.Construtora</p>
+                        </div>
+                        <span style="font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+                                    background: @(obra.Finalizado ? "#dcfce7" : "#fef9c3");
+                                    color: @(obra.Finalizado ? "#166534" : "#854d0e");">
+                            @(obra.Finalizado ? "Concluída" : "Em andamento")
+                        </span>
+                    </div>
+                }
+                @if (obras.Count > 5)
+                {
+                    <p style="font-size: 0.75rem; color: #888; text-align: center; margin: 0.5rem 0 0;">
+                        ... e mais @(obras.Count - 5) obra(s)
+                    </p>
+                }
+            }
+            else
+            {
+                <p style="color: #991b1b; font-size: 0.8rem; margin: 0;">@erroObras</p>
+            }
+        </div>
+
+        <!-- TEMPO DE RESPOSTA -->
+        <div style="text-align: center; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 10px;">
+            <p style="font-size: 0.8rem; color: #888; margin: 0;">Tempo de resposta: <strong>@tempoMs ms</strong></p>
+        </div>
+
+        <!-- BOTÃO RECARREGAR -->
+        <button @onclick="CarregarDados"
+                style="width: 100%; margin-top: 1rem; padding: 0.75rem; border: none; border-radius: 10px;
+                       background: #4f46e5; color: white; font-weight: 600; font-size: 0.9rem; cursor: pointer;">
+            Testar Novamente
+        </button>
+    }
+</div>
+
+<style>
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private DashboardMetricasDto? metricas;
+    private List<ObraResponseDto>? obras;
+    private string? erroMetricas;
+    private string? erroObras;
+    private bool carregando = true;
+    private long tempoMs;
+
+    private string statusIcone = "...";
+    private string statusTitulo = "Verificando...";
+    private string statusDetalhe = "";
+    private string statusCor = "#6b7280";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CarregarDados();
+        }
+    }
+
+    private async Task CarregarDados()
+    {
+        carregando = true;
+        metricas = null;
+        obras = null;
+        erroMetricas = null;
+        erroObras = null;
+        statusIcone = "...";
+        statusTitulo = "Verificando...";
+        statusDetalhe = "";
+        statusCor = "#6b7280";
+        StateHasChanged();
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        int sucessos = 0;
+
+        try
+        {
+            metricas = await DashboardService.GetMetricasAsync();
+            sucessos++;
+        }
+        catch (Exception ex)
+        {
+            erroMetricas = ex.Message;
+        }
+
+        try
+        {
+            obras = await ObraService.GetAllAsync();
+            sucessos++;
+        }
+        catch (Exception ex)
+        {
+            erroObras = ex.Message;
+        }
+
+        sw.Stop();
+        tempoMs = sw.ElapsedMilliseconds;
+
+        if (sucessos == 2)
+        {
+            statusIcone = "✓";
+            statusTitulo = "API Conectada";
+            statusDetalhe = $"2/2 endpoints responderam em {tempoMs}ms";
+            statusCor = "#16a34a";
+        }
+        else if (sucessos == 1)
+        {
+            statusIcone = "!";
+            statusTitulo = "Conexão Parcial";
+            statusDetalhe = $"1/2 endpoints responderam em {tempoMs}ms";
+            statusCor = "#d97706";
+        }
+        else
+        {
+            statusIcone = "✗";
+            statusTitulo = "Sem Conexão";
+            statusDetalhe = "Nenhum endpoint respondeu";
+            statusCor = "#dc2626";
+        }
+
+        carregando = false;
+        StateHasChanged();
+    }
+}

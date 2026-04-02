@@ -1,6 +1,13 @@
 ﻿@page "/dashboard"
+@using MOBILE.SIGE.Interfaces
+@inject IAuthService AuthService
+@inject NavigationManager Nav
 
+<<<<<<< HEAD
 
+=======
+<button @onclick="Logout">Logout</button>
+>>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d
 <div class="dashboard">
 
     <!-- TOPO -->
@@ -162,4 +169,22 @@
 
 </div>
 
+<<<<<<< HEAD
 </div>
+=======
+
+
+
+
+@code {
+    //private bool _isAuthenticated;
+    //private bool _loading = true;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}
+
+>>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d
