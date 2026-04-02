@@ -36,7 +36,7 @@
         </button>
     </EditForm>
 
-    <p class="link" @onclick="IrRecuperarSenha" style="cursor:pointer;">Esqueceu a senha?</p>
+    <p class="link" @onclick="IrRecuperarSenha" style="cursor:pointer;" >Esqueceu a senha?</p>
 
     <p class="version">
         Versão 1.0.0 <br />
@@ -49,6 +49,7 @@
     private readonly LoginRequest _model = new();
     private bool _carregando;
     private string? _erroLogin;
+    private string? _email;
 
     private async Task EntrarAsync()
     {
@@ -61,6 +62,7 @@
 
             if (response is not null && response.Success)
             {
+
                 Nav.NavigateTo("/dashboard", forceLoad: false);
                 return;
             }

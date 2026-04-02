@@ -53,7 +53,7 @@
             var isAuthenticated = await AuthService.IsAuthenticatedAsync();
             _loading = false;
 
-            if (!isAuthenticated && !IsLoginPage())
+            if (!isAuthenticated && !IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage())
             {
                 Nav.NavigateTo("/login");
                 return;
@@ -64,7 +64,7 @@
         catch
         {
             _loading = false;
-            if (!IsLoginPage())
+            if (!IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage())
             {
                 Nav.NavigateTo("/login");
             }
@@ -82,7 +82,20 @@
             || relative.StartsWith("login/", StringComparison.OrdinalIgnoreCase)
             || relative.StartsWith("login?", StringComparison.OrdinalIgnoreCase);
     }
-
+    private bool IsRecuperarSenhaPage()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri);
+        return relative.Equals("recuperar", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("recuperar/", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("recuperar?", StringComparison.OrdinalIgnoreCase);
+    }
+    private bool IsCodigoPage()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri);
+        return relative.Equals("codigo", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("codigo/", StringComparison.OrdinalIgnoreCase)
+            || relative.StartsWith("codigo?", StringComparison.OrdinalIgnoreCase);
+    }
     public void Dispose()
     {
         Nav.LocationChanged -= OnLocationChanged;
