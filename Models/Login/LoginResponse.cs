@@ -8,7 +8,7 @@ namespace MOBILE.SIGE.Models.Login
         public string? Email { get; set; }
         public int? TipoUsuario { get; set; }
         public string? Message { get; set; }
-        public List<string>? Cargos { get; set; }
+        public string? Cargo { get; set; }
         public string? Token { get; set; }
     }
 }

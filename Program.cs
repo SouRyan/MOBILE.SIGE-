@@ -1,5 +1,6 @@
 using API.SIGE.ApiServices;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using MOBILE.SIGE.ApiServices;
 using MOBILE.SIGE.Components;
 using MOBILE.SIGE.Interfaces;
@@ -17,6 +18,7 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
     sp.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped<ProtectedLocalStorage>();
 
 // HttpClient com JWT handler
 builder.Services.AddScoped<JwtAuthHandler>();
@@ -26,6 +28,8 @@ builder.Services.AddHttpClient("ApiSige", client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiSige:BaseUrl"] ?? "http://localhost:5075/");
 })
 .AddHttpMessageHandler<JwtAuthHandler>();
+builder.Services.AddScoped(sp =>
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiSige"));
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();

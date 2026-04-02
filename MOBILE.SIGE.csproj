@@ -9,6 +9,13 @@
 
   <ItemGroup>
     <Folder Include="Models\Producao\" />
+    <Folder Include="Pages\Caixilho\" />
+    <Folder Include="Pages\DashBoard\" />
+    <Folder Include="Pages\Login\Verificacao\" />
+    <Folder Include="Pages\Login\RecuperarSenha\" />
+    <Folder Include="Pages\Medicao\" />
+    <Folder Include="Pages\Obra\" />
+    <Folder Include="Pages\User\" />
   </ItemGroup>
 
   <ItemGroup>

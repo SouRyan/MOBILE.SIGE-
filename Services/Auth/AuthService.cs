@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using MOBILE.SIGE.Interfaces;
 using MOBILE.SIGE.Models.Login;
 using MOBILE.SIGE.Services.Auth;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Text.Json;
 
 namespace MOBILE.SIGE.Services
 {
@@ -15,42 +12,42 @@ namespace MOBILE.SIGE.Services
         private readonly TokenStorageService _tokenStorage;
         private readonly AuthenticationStateProvider _authStateProvider;
 
-        // TEMPORARIO: usuario local para testes - REMOVER ANTES DE PRODUÇÃO
-        private const string TempEmail = "admin@sige.local";
-        private const string TempSenha = "admin123";
-
-        public AuthService(HttpClient http, TokenStorageService tokenStorage, AuthenticationStateProvider authStateProvider)
+        public AuthService(IHttpClientFactory factory, TokenStorageService tokenStorage, AuthenticationStateProvider authStateProvider)
         {
-            _http = http;
+            _http = factory.CreateClient("ApiSige");
             _tokenStorage = tokenStorage;
             _authStateProvider = authStateProvider;
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            // TEMPORARIO: bypass local para desenvolvimento
-            if (request.Email == TempEmail && request.Senha == TempSenha)
-            {
-                var token = GerarTokenTemporario();
-                await _tokenStorage.SetTokenAsync(token);
-                ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
+            var response = await _http.PostAsJsonAsync("api/usuario/login", request);
+            var content = await response.Content.ReadAsStringAsync();
+            LoginResponse? result = null;
 
-                return new LoginResponse
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                try
                 {
-                    Success = true,
-                    IdUsuario = 1,
-                    NomeUsuario = "Admin Temp",
-                    Email = TempEmail,
-                    TipoUsuario = 1,
-                    Cargos = new List<string> { "Administrador" },
-                    Token = token,
-                    Message = "Login local temporario."
-                };
+                    result = JsonSerializer.Deserialize<LoginResponse>(
+                        content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                catch
+                {
+                }
             }
 
-            var response = await _http.PostAsJsonAsync("api/UsuarioApi/login", request);
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>()
-                ?? new LoginResponse { Success = false, Message = "Erro ao processar resposta." };
+            if (result is null)
+            {
+                return new LoginResponse
+                {
+                    Success = false,
+                    Message = !response.IsSuccessStatusCode
+                        ? $"Falha no login (HTTP {(int)response.StatusCode}) [{response.RequestMessage?.RequestUri}]: {content}"
+                        : "A API retornou uma resposta inválida."
+                };
+            }
 
             if (result.Success && result.Token != null)
             {
@@ -71,31 +68,6 @@ namespace MOBILE.SIGE.Services
         {
             var token = await _tokenStorage.GetTokenAsync();
             return !string.IsNullOrWhiteSpace(token);
-        }
-
-        private static string GerarTokenTemporario()
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ChaveTemporariaLocalSIGE2026DevOnly!!"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
-                new Claim(ClaimTypes.Name, "Admin Temp"),
-                new Claim(ClaimTypes.Email, TempEmail),
-                new Claim(ClaimTypes.Role, "Administrador"),
-                new Claim("idUsuario", "1"),
-                new Claim("tipoUsuario", "1")
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: "SIGE.Local",
-                audience: "SIGE.Web",
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
