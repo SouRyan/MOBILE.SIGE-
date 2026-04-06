@@ -7,9 +7,9 @@ public class MedicaoApiService
 {
     private readonly HttpClient _http;
 
-    public MedicaoApiService(IHttpClientFactory factory)
+    public MedicaoApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<MedicaoResponseDto?> GetByFamiliaAsync(int familiaId)

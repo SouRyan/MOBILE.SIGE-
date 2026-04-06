@@ -7,6 +7,8 @@ namespace MOBILE.SIGE.Services.Auth
         private readonly ProtectedLocalStorage _localStorage;
         private const string TokenKey = "authToken";
 
+        public string? CachedToken { get; private set; }
+
         public TokenStorageService(ProtectedLocalStorage localStorage)
         {
             _localStorage = localStorage;
@@ -17,22 +19,37 @@ namespace MOBILE.SIGE.Services.Auth
             try
             {
                 var result = await _localStorage.GetAsync<string>(TokenKey);
-                return result.Success ? result.Value : null;
+                CachedToken = result.Success ? result.Value : null;
+                return CachedToken;
             }
             catch
             {
-                return null;
+                return CachedToken;
             }
         }
 
         public async Task SetTokenAsync(string token)
         {
-            await _localStorage.SetAsync(TokenKey, token);
+            CachedToken = token;
+            try
+            {
+                await _localStorage.SetAsync(TokenKey, token);
+            }
+            catch (InvalidOperationException)
+            {
+            }
         }
 
         public async Task RemoveTokenAsync()
         {
-            await _localStorage.DeleteAsync(TokenKey);
+            CachedToken = null;
+            try
+            {
+                await _localStorage.DeleteAsync(TokenKey);
+            }
+            catch (InvalidOperationException)
+            {
+            }
         }
     }
 }

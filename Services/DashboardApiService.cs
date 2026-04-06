@@ -8,9 +8,9 @@ public class DashboardApiService
 {
     private readonly HttpClient _http;
 
-    public DashboardApiService(IHttpClientFactory factory)
+    public DashboardApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<DashboardMetricasDto?> GetMetricasAsync()

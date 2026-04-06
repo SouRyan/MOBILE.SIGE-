@@ -7,9 +7,9 @@ public class ObraApiService
 {
     private readonly HttpClient _http;
 
-    public ObraApiService(IHttpClientFactory factory)
+    public ObraApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<List<ObraResponseDto>?> GetAllAsync(bool? finalizadas = null)

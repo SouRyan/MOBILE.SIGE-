@@ -1,0 +1,38 @@
+@using MOBILE.SIGE.Models.Enums
+
+<div class="obra-item">
+    <div class="obra-linha">
+        <span class="obra-nome">@Nome</span>
+        <span class="tag @CorCss">@StatusTexto</span>
+    </div>
+
+    <div class="barra">
+        <div class="progresso @CorCss" style="width: @(Percentual.ToString("0"))%"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Nome { get; set; } = "";
+    [Parameter] public StatusObra Status { get; set; }
+    [Parameter] public float Percentual { get; set; }
+
+    private string StatusTexto => Status switch
+    {
+        StatusObra.Cadastrada => "Cadastrada",
+        StatusObra.Verificada => "Verificada",
+        StatusObra.EmMedicao => "Em medição",
+        StatusObra.EmProducao => "Em produção",
+        StatusObra.Concluida => "Concluída",
+        _ => ""
+    };
+
+    private string CorCss => Status switch
+    {
+        StatusObra.Cadastrada => "gray",
+        StatusObra.Verificada => "blue",
+        StatusObra.EmMedicao => "yellow",
+        StatusObra.EmProducao => "yellow",
+        StatusObra.Concluida => "green",
+        _ => ""
+    };
+}

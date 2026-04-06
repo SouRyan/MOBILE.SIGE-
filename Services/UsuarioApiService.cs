@@ -9,9 +9,9 @@ public class UsuarioApiService
 {
     private readonly HttpClient _http;
 
-    public UsuarioApiService(IHttpClientFactory factory)
+    public UsuarioApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<List<UsuarioResponseDto>?> GetAllAsync(bool ativos = true)

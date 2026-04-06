@@ -1,0 +1,13 @@
+<div class="meta">
+    <p>@Titulo</p>
+    <h3>@Descricao</h3>
+    <div class="barra">
+        <div class="progresso" style="width: @(Percentual)%"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Titulo { get; set; } = "Meta Mensal";
+    [Parameter] public string Descricao { get; set; } = "";
+    [Parameter] public int Percentual { get; set; } = 0;
+}

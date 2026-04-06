@@ -1,181 +1,173 @@
-﻿@page "/dashboard"
+@page "/dashboard"
 @using MOBILE.SIGE.Interfaces
+@using MOBILE.SIGE.Models.Dashboard
+@using MOBILE.SIGE.Models.Notificacao
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.Obra
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.ApiServices
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IAuthService AuthService
 @inject NavigationManager Nav
-
+@inject DashboardApiService DashboardService
+@inject NotificacaoApiService NotificacaoService
+@inject ObraApiService ObraService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <button @onclick="Logout">Logout</button>
->>>>>>> 34e5439d48343413d90562b6e1b61f945f17518d
+
 <div class="dashboard">
 
-    <!-- TOPO -->
-    <div class="dash-header">
-        <div class="dash-title">
-            <h1>Dashboard</h1>
-            <p>Visão geral das obras</p>
+    <DashHeader Titulo="Dashboard"
+                Subtitulo="Visão geral das obras"
+                AvatarUrl="https://i.pravatar.cc/100"
+                NomeUsuario="@nomeUsuario" />
+
+    @if (loading)
+    {
+        <p>Carregando...</p>
+    }
+    else if (erro is not null)
+    {
+        <div style="color: red; padding: 1rem;">
+            <p><strong>Erro ao carregar dados:</strong></p>
+            <p>@erro</p>
+        </div>
+    }
+    else
+    {
+        <div class="cards">
+            <DashCard CorCss="blue"
+                      IconeUrl="Icons/Bill.svg"
+                      Valor="@(metricas?.TotalObras.ToString() ?? "0")"
+                      Label="Total de obras" />
+            <DashCard CorCss="yellow"
+                      IconeUrl="Icons/Services.svg"
+                      Valor="@(metricas?.ObrasEmAndamento.ToString() ?? "0")"
+                      Label="Em andamento" />
+            <DashCard CorCss="red"
+                      IconeUrl="Icons/Medium Risk.svg"
+                      Valor="@(metricas?.TotalProducoes.ToString() ?? "0")"
+                      Label="Produções" />
+            <DashCard CorCss="green"
+                      IconeUrl="Icons/Check Mark.svg"
+                      Valor="@(totalConcluidas.ToString())"
+                      Label="Concluídas" />
         </div>
 
-        <div class="user">
-            <img src="https://i.pravatar.cc/100" />
-            <span>Ryan Bryan - Gerente</span>
-        </div>
-    </div>
+        <MetaMensal Titulo="Meta Mensal"
+                    Descricao="@metaDescricao"
+                    Percentual="@metaPercentual" />
 
-    <!-- CARDS -->
-    <div class="cards">
+        <AlertasList>
+            @foreach (var n in notificacoes)
+            {
+                <AlertaItem Texto="@n.Mensagem"
+                            Tipo="@n.TipoNotificacao"
+                            Lida="@n.Lida" />
+            }
+        </AlertasList>
 
-        <div class="card blue">
-            <div class="card-top">
-                <img src="Icons/Bill.svg" class="card-icon" />
-            </div>
-            <h2>12</h2>
-            <div class="line"></div>
-            <p>Total de obras</p>
-        </div>
+        <ObrasList>
+            @foreach (var obra in metricas?.ObrasProgresso ?? new())
+            {
+                <ObraItem Nome="@($"#{obra.IdObra} - {obra.Nome}")"
+                          Status="@obra.StatusObra"
+                          Percentual="@obra.PercentualProducao" />
+            }
+        </ObrasList>
+    }
 
-        <div class="card yellow">
-            <div class="card-top">
-                <img src="Icons/Services.svg" class="card-icon" />
-            </div>
-            <h2>7</h2>
-            <div class="line"></div>
-            <p>Em produção</p>
-        </div>
-
-        <div class="card red">
-            <div class="card-top">
-                <img src="Icons/Medium Risk.svg" class="card-icon" />
-            </div>
-            <h2>3</h2>
-            <div class="line"></div>
-            <p>Atrasadas</p>
-        </div>
-
-        <div class="card green">
-            <div class="card-top">
-                <img src="Icons/Check Mark.svg" class="card-icon" />
-            </div>
-            <h2>4</h2>
-            <div class="line"></div>
-            <p>Finalizadas</p>
-        </div>
-
-    </div>
-
-    <!-- META -->
-    <div class="meta">
-        <p>Meta Mensal</p>
-        <h3>10 / 32.200,00Kg</h3>
-        <div class="barra">
-            <div class="progresso"></div>
-        </div>
-    </div>
-
-    <!-- ALERTAS -->
-    <div class="alertas">
-
-        <div class="alertas-header">
-            <span>Alertas</span>
-            <span>›</span>
-        </div>
-
-        <div class="alerta-item">
-            <span class="bolinha red"></span>
-            <span class="texto">#345 - Residência Vila Verde - Entrega 04/04/2026</span>
-            <span class="status red">ATRASADO</span>
-        </div>
-
-        <div class="alerta-item">
-            <span class="bolinha yellow"></span>
-            <span class="texto">#248 - Edifício Barnabé - Entrega 12/04/2026</span>
-            <span class="status yellow">ENTREGA PRÓXIMA</span>
-        </div>
-
-        <div class="alerta-item">
-            <span class="bolinha yellow"></span>
-            <span class="texto">#248 - Edificíl Legal - Entrega 18/04/2026</span>
-            <span class="status yellow">ENTREGA PRÓXIMA</span>
-        </div>
-
-    </div>
-
-    <!-- OBRAS -->
-    <div class="obras">
-
-        <div class="obras-header">
-            <span>Obras</span>
-            <span>›</span>
-        </div>
-
-        <div class="obra-item">
-            <div class="obra-linha">
-                <span class="obra-nome">#248 - Edifício Barnabé</span>
-                <span class="tag yellow">Em produção</span>
-            </div>
-
-            <div class="barra">
-                <div class="progresso yellow"></div>
-            </div>
-        </div>
-
-        <div class="obra-item">
-            <div class="obra-linha">
-                <span class="obra-nome">#345 - Residência Vila Verde</span>
-                <span class="tag red">Atrasada</span>
-            </div>
-
-            <div class="barra">
-                <div class="progresso red"></div>
-            </div>
-        </div>
-
-        <div class="obra-item">
-            <div class="obra-linha">
-                <span class="obra-nome">#231 - Edifício Oba</span>
-                <span class="tag green">Concluído</span>
-            </div>
-
-            <div class="barra">
-                <div class="progresso green"></div>
-            </div>
-        </div>
-
-    </div>
-
-<!-- MENU -->
-<div class="menu">
-
-    <!-- Dashboard -->
-    <NavLink href="/dashboard" class="menu-item" ActiveClass="active">
-        <img src="Icons/Analytics.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Obras -->
-    <NavLink href="/obras" class="menu-item" ActiveClass="active">
-        <img src="Icons/Roadblock.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Medição -->
-    <NavLink href="/medicao" class="menu-item" ActiveClass="active">
-        <img src="Icons/Wrench.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Conferência -->
-    <NavLink href="/conferencia" class="menu-item" ActiveClass="active">
-        <img src="Icons/Check Mark.svg" class="card-icon" />
-    </NavLink>
+    <BottomMenu />
 
 </div>
-
-</div>
-
-
-
-
 
 @code {
-    //private bool _isAuthenticated;
-    //private bool _loading = true;
+    private DashboardMetricasDto? metricas;
+    private List<NotificacaoResponseDto> notificacoes = new();
+    private string nomeUsuario = "";
+    private int idUsuario;
+    private bool loading = true;
+    private string? erro;
+
+    private int totalConcluidas =>
+        metricas?.ObrasProgresso?.Count(o => o.StatusObra == StatusObra.Concluida) ?? 0;
+
+    private string metaDescricao = "0 / 0 Kg";
+    private int metaPercentual;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            await CarregarUsuario();
+            await CarregarDados();
+        }
+        catch (Exception ex)
+        {
+            erro = ex.Message;
+            Console.WriteLine($"[Dashboard] Erro: {ex}");
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CarregarUsuario()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        nomeUsuario = user.FindFirst("unique_name")?.Value
+                   ?? user.FindFirst(ClaimTypes.Name)?.Value
+                   ?? "Usuário";
+
+        var idClaim = user.FindFirst("nameid")?.Value
+                   ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (int.TryParse(idClaim, out var id))
+            idUsuario = id;
+
+        var cargo = user.FindFirst("role")?.Value
+                 ?? user.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (!string.IsNullOrEmpty(cargo))
+            nomeUsuario += $" - {cargo}";
+    }
+
+    private async Task CarregarDados()
+    {
+        var tarefaMetricas = DashboardService.GetMetricasAsync();
+        var tarefaNotificacoes = idUsuario > 0
+            ? NotificacaoService.GetByUsuarioAsync(idUsuario)
+            : Task.FromResult<List<NotificacaoResponseDto>?>(new());
+        var tarefaObras = ObraService.GetAllAsync();
+
+        await Task.WhenAll(tarefaMetricas, tarefaNotificacoes, tarefaObras);
+
+        metricas = await tarefaMetricas;
+        notificacoes = (await tarefaNotificacoes) ?? new();
+
+        var obras = (await tarefaObras) ?? new();
+        CalcularMeta(obras);
+    }
+
+    private void CalcularMeta(List<ObraResponseDto> obras)
+    {
+        var pesoTotal = obras.Sum(o => o.PesoFinal);
+        var pesoProduzido = obras.Sum(o => o.PesoProduzido);
+
+        metaPercentual = pesoTotal > 0
+            ? (int)Math.Round(pesoProduzido / pesoTotal * 100)
+            : 0;
+
+        metaDescricao = $"{pesoProduzido:N2} / {pesoTotal:N2} Kg";
+    }
 
     private async Task Logout()
     {
@@ -183,5 +175,3 @@
         Nav.NavigateTo("/login");
     }
 }
-
-

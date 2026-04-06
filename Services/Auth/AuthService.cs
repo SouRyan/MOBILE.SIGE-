@@ -12,9 +12,9 @@ namespace MOBILE.SIGE.Services
         private readonly TokenStorageService _tokenStorage;
         private readonly AuthenticationStateProvider _authStateProvider;
 
-        public AuthService(IHttpClientFactory factory, TokenStorageService tokenStorage, AuthenticationStateProvider authStateProvider)
+        public AuthService(HttpClient http, TokenStorageService tokenStorage, AuthenticationStateProvider authStateProvider)
         {
-            _http = factory.CreateClient("ApiSige");
+            _http = http;
             _tokenStorage = tokenStorage;
             _authStateProvider = authStateProvider;
         }

@@ -8,9 +8,9 @@ public class AnexoApiService
 {
     private readonly HttpClient _http;
 
-    public AnexoApiService(IHttpClientFactory factory)
+    public AnexoApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<AnexoResponseDto?> UploadAsync(Stream fileStream, string fileName, TipoAnexo tipoAnexo, int idUsuario, int? idMedicao = null, int? idProducaoFamilia = null)

@@ -8,9 +8,9 @@ public class HomeApiService
 {
     private readonly HttpClient _http;
 
-    public HomeApiService(IHttpClientFactory factory)
+    public HomeApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<DashboardMetricasDto?> GetDashboardAsync()

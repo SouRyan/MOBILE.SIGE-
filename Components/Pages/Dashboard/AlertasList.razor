@@ -1,0 +1,12 @@
+<div class="alertas">
+    <div class="alertas-header">
+        <span>Alertas</span>
+        <span>›</span>
+    </div>
+
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

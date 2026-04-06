@@ -20,16 +20,17 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<ProtectedLocalStorage>();
 
-// HttpClient com JWT handler
-builder.Services.AddScoped<JwtAuthHandler>();
-
-builder.Services.AddHttpClient("ApiSige", client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ApiSige:BaseUrl"] ?? "http://localhost:5075/");
-})
-.AddHttpMessageHandler<JwtAuthHandler>();
+// HttpClient scoped ao circuito Blazor, com JWT handler
 builder.Services.AddScoped(sp =>
-    sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiSige"));
+{
+    var tokenStorage = sp.GetRequiredService<TokenStorageService>();
+    var handler = new JwtAuthHandler(tokenStorage)
+    {
+        InnerHandler = new HttpClientHandler()
+    };
+    var baseUrl = builder.Configuration["ApiSige:BaseUrl"] ?? "http://localhost:5075/";
+    return new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
+});
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();

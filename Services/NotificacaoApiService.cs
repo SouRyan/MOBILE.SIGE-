@@ -7,9 +7,9 @@ public class NotificacaoApiService
 {
     private readonly HttpClient _http;
 
-    public NotificacaoApiService(IHttpClientFactory factory)
+    public NotificacaoApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<List<NotificacaoResponseDto>?> GetByUsuarioAsync(int idUsuario)

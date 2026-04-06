@@ -1,0 +1,18 @@
+<div class="dash-header">
+    <div class="dash-title">
+        <h1>@Titulo</h1>
+        <p>@Subtitulo</p>
+    </div>
+
+    <div class="user">
+        <img src="@AvatarUrl" />
+        <span>@NomeUsuario</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Titulo { get; set; } = "Dashboard";
+    [Parameter] public string Subtitulo { get; set; } = "Visão geral das obras";
+    [Parameter] public string AvatarUrl { get; set; } = "https://i.pravatar.cc/100";
+    [Parameter] public string NomeUsuario { get; set; } = "";
+}

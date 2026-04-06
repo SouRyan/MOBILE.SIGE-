@@ -1,0 +1,15 @@
+<div class="card @CorCss">
+    <div class="card-top">
+        <img src="@IconeUrl" class="card-icon" />
+    </div>
+    <h2>@Valor</h2>
+    <div class="line"></div>
+    <p>@Label</p>
+</div>
+
+@code {
+    [Parameter] public string CorCss { get; set; } = "";
+    [Parameter] public string IconeUrl { get; set; } = "";
+    [Parameter] public string Valor { get; set; } = "0";
+    [Parameter] public string Label { get; set; } = "";
+}

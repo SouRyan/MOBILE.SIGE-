@@ -8,9 +8,9 @@ public class ProducaoFamiliaApiService
 {
     private readonly HttpClient _http;
 
-    public ProducaoFamiliaApiService(IHttpClientFactory factory)
+    public ProducaoFamiliaApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<ProducaoFamiliaResponseDto?> GetByFamiliaAsync(int familiaId)

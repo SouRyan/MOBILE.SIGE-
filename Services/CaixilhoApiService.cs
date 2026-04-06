@@ -7,9 +7,9 @@ public class CaixilhoApiService
 {
     private readonly HttpClient _http;
 
-    public CaixilhoApiService(IHttpClientFactory factory)
+    public CaixilhoApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<List<CaixilhoResponseDto>?> GetAllAsync()

@@ -8,9 +8,9 @@ public class CargoApiService
 {
     private readonly HttpClient _http;
 
-    public CargoApiService(IHttpClientFactory factory)
+    public CargoApiService(HttpClient http)
     {
-        _http = factory.CreateClient("ApiSige");
+        _http = http;
     }
 
     public async Task<List<CargoResponseDto>?> GetAllAsync()

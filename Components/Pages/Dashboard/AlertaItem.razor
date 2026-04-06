@@ -1,0 +1,22 @@
+@using MOBILE.SIGE.Models.Enums
+
+<div class="alerta-item">
+    <span class="bolinha @CorCss"></span>
+    <span class="texto">@Texto</span>
+    <span class="status @CorCss">@(Lida ? "LIDA" : "NOVA")</span>
+</div>
+
+@code {
+    [Parameter] public string Texto { get; set; } = "";
+    [Parameter] public TipoNotificacao Tipo { get; set; }
+    [Parameter] public bool Lida { get; set; }
+
+    private string CorCss => Tipo switch
+    {
+        TipoNotificacao.ObraConcluida => "green",
+        TipoNotificacao.ObraVerificada => "blue",
+        TipoNotificacao.FamiliaMedida => "yellow",
+        TipoNotificacao.FamiliaProduzida => "yellow",
+        _ => "gray"
+    };
+}
