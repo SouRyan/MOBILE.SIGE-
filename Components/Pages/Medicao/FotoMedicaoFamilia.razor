@@ -1,0 +1,258 @@
+@page "/medicao/familia/{FamiliaId:int}"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Caixilho
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
+@inject FamiliaCaixilhoApiService FamiliaApi
+@inject CaixilhoApiService CaixilhoApi
+@inject FamiliaMedicaoWebClient MedicaoWeb
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="medicao-page medicao-page--foto">
+    <button type="button" class="medicao-back" @onclick="Voltar">
+        ← Voltar à lista
+    </button>
+
+    <header class="medicao-hero">
+        <div class="medicao-hero__icon" aria-hidden="true">
+            <img src="Icons/Wrench.svg" alt="" />
+        </div>
+        <div class="medicao-hero__text">
+            <h1>Foto da medição</h1>
+            <p>Envio para análise na web</p>
+        </div>
+    </header>
+
+    <p class="medicao-lead">
+        Aprovar ou rejeitar a medição é feito <strong>só na aplicação web</strong> — este ecrã serve apenas para
+        tirar ou escolher a imagem e enviar.
+    </p>
+
+    @if (!string.IsNullOrEmpty(_tituloFamilia))
+    {
+        <p class="medicao-foto-titulo">@_tituloFamilia</p>
+    }
+
+    @if (_erro != null)
+    {
+        <div class="medicao-callout medicao-callout--danger">@_erro</div>
+    }
+    @if (_sucesso)
+    {
+        <div class="medicao-callout medicao-callout--success">
+            Foto enviada com sucesso. Na web, um gestor aprova (marca Medido) ou rejeita para enviar outra foto.
+        </div>
+    }
+
+    <div class="medicao-callout medicao-callout--info">
+        <strong>Telemóvel em IP (http://192.168…):</strong> o browser bloqueia a câmara em tempo real.
+        Use <strong>Tirar / escolher foto</strong> para abrir a câmara do aparelho.
+        Em <strong>localhost</strong> ou <strong>HTTPS</strong>, «Pré-visualização ao vivo» também funciona.
+    </div>
+
+    <div class="medicao-file-wrap">
+        <label class="medicao-btn medicao-btn--primary">
+            Tirar ou escolher foto
+            <InputFile OnChange="OnFotoFicheiro"
+                       accept="image/*"
+                       class="d-none"
+                       @attributes="InputCaptureAttributes" />
+        </label>
+    </div>
+
+    <div class="medicao-video-shell">
+        <video @ref="_videoRef"
+               playsinline
+               muted></video>
+    </div>
+
+    <div class="medicao-btn-row">
+        <button type="button" class="medicao-btn medicao-btn--accent" @onclick="IniciarCamera" disabled="@_busy" title="Funciona em localhost ou HTTPS">
+            Pré-visualização ao vivo
+        </button>
+        <button type="button" class="medicao-btn medicao-btn--outline" @onclick="Capturar" disabled="@_busy">
+            Capturar do vídeo
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_previewDataUrl))
+    {
+        <p class="medicao-preview-label">Pré-visualização</p>
+        <img src="@_previewDataUrl" alt="Pré-visualização da foto" class="medicao-preview-img" />
+    }
+
+    <button type="button" class="medicao-btn medicao-btn--success" @onclick="Enviar" disabled="@(_busy || string.IsNullOrEmpty(_previewDataUrl) || _sucesso)">
+        @if (_busy)
+        {
+            <span>A enviar…</span>
+        }
+        else
+        {
+            <span>Enviar foto</span>
+        }
+    </button>
+
+    <BottomMenu />
+</div>
+
+@code {
+    [Parameter] public int FamiliaId { get; set; }
+
+    private static readonly IReadOnlyDictionary<string, object> InputCaptureAttributes =
+        new Dictionary<string, object> { ["capture"] = "environment" };
+
+    private ElementReference _videoRef;
+    private IJSObjectReference? _module;
+    private string? _tituloFamilia;
+    private string? _erro;
+    private string? _previewDataUrl;
+    private bool _busy;
+    private bool _sucesso;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var f = await FamiliaApi.GetByIdAsync(FamiliaId);
+            if (f == null)
+            {
+                _erro = "Família não encontrada.";
+                return;
+            }
+
+            _tituloFamilia = $"{f.DescricaoFamilia}" + (string.IsNullOrEmpty(f.NomeObra) ? "" : $" — {f.NomeObra}");
+
+            if (f.StatusFamilia == StatusFamilia.EmProducao || f.StatusFamilia == StatusFamilia.Produzida)
+                _erro = "Esta família já está em produção ou produzida.";
+
+            var todosCx = await CaixilhoApi.GetAllAsync() ?? new List<CaixilhoResponseDto>();
+            var cx = todosCx.Where(c => c.IdFamiliaCaixilho == FamiliaId).ToList();
+            if (cx.Count > 0 && cx.All(c => c.StatusProducao == StatusProducao.Medido))
+                _erro = "A medição desta família já foi confirmada (todos os caixilhos estão medidos).";
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/familiaMedicaoCamera.js");
+        }
+    }
+
+    private void Voltar() => Nav.NavigateTo("/medicao");
+
+    private async Task OnFotoFicheiro(InputFileChangeEventArgs e)
+    {
+        _erro = null;
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            const long maxBytes = 5 * 1024 * 1024;
+            await using var stream = file.OpenReadStream(maxAllowedSize: maxBytes);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var b64 = Convert.ToBase64String(ms.ToArray());
+            var mime = string.IsNullOrWhiteSpace(file.ContentType) ? "image/jpeg" : file.ContentType;
+            _previewDataUrl = $"data:{mime};base64,{b64}";
+        }
+        catch (Exception ex)
+        {
+            _erro = "Ficheiro: " + ex.Message;
+        }
+    }
+
+    private async Task IniciarCamera()
+    {
+        if (_module == null) return;
+        _erro = null;
+        _busy = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await _module.InvokeVoidAsync("startPreview", _videoRef);
+        }
+        catch (Exception ex)
+        {
+            var msg = ex.Message;
+            if (msg.Contains("PREVIEW_HTTP:", StringComparison.Ordinal))
+                msg = msg.Replace("PREVIEW_HTTP:", "", StringComparison.Ordinal).Trim();
+            _erro = "Câmara: " + msg;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task Capturar()
+    {
+        if (_module == null) return;
+        _erro = null;
+        try
+        {
+            var dataUrl = await _module.InvokeAsync<string?>("captureToDataUrl", _videoRef, 0.85);
+            if (string.IsNullOrEmpty(dataUrl))
+            {
+                _erro = "Inicie a câmara e aguarde a imagem.";
+                return;
+            }
+
+            _previewDataUrl = dataUrl;
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+    }
+
+    private async Task Enviar()
+    {
+        if (string.IsNullOrEmpty(_previewDataUrl)) return;
+        _busy = true;
+        _erro = null;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            var (ok, msg) = await MedicaoWeb.EnviarFotoAsync(FamiliaId, _previewDataUrl);
+            if (ok)
+                _sucesso = true;
+            else
+                _erro = msg ?? "Falha ao enviar.";
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null)
+        {
+            try
+            {
+                await _module.InvokeVoidAsync("stopPreview", _videoRef);
+            }
+            catch { /* ignore */ }
+
+            await _module.DisposeAsync();
+        }
+    }
+}

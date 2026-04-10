@@ -19,7 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlazorJWT.BlazoredLocalStorage" Version="0.1.3" />
+    <Content Include="Pwa\manifest.webmanifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="10.0.5" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
   </ItemGroup>

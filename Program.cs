@@ -46,6 +46,24 @@ builder.Services.AddScoped<ProducaoFamiliaApiService>();
 builder.Services.AddScoped<NotificacaoApiService>();
 builder.Services.AddScoped<DashboardApiService>();
 
+builder.Services.AddScoped(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = cfg["GerenciamentoWeb:BaseUrl"]?.Trim();
+    if (string.IsNullOrEmpty(baseUrl))
+        baseUrl = "http://localhost:5192/";
+    if (!baseUrl.EndsWith('/'))
+        baseUrl += "/";
+
+    var tokenStorage = sp.GetRequiredService<TokenStorageService>();
+    var handler = new JwtAuthHandler(tokenStorage)
+    {
+        InnerHandler = new HttpClientHandler()
+    };
+    var http = new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
+    return new FamiliaMedicaoWebClient(http);
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -54,6 +72,12 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseAntiforgery();
+
+var manifestPath = Path.Combine(app.Environment.ContentRootPath, "Pwa", "manifest.webmanifest");
+app.MapGet("/manifest.webmanifest", () =>
+    File.Exists(manifestPath)
+        ? Results.File(manifestPath, "application/manifest+json")
+        : Results.NotFound());
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

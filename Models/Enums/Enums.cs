@@ -47,9 +47,12 @@ public enum TipoNotificacao
     ObraConcluida = 4
 }
 
+/// <summary>Valores alinhados à API (ex.: Medido = 2).</summary>
 public enum StatusProducao
 {
-    Pendente = 1,
-    EmProducao = 2,
-    Produzida = 3
+    Pendente = 0,
+    ParaMedir = 1,
+    Medido = 2,
+    Concluido = 3,
+    PendenteLegado = 4
 }

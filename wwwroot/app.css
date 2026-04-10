@@ -972,4 +972,352 @@ html, body {
     }
 
 
+/* ===== MEDIÇÃO — FAMÍLIAS (MOBILE) ===== */
+
+.medicao-page {
+    background-color: #010813;
+    min-height: 100vh;
+    padding: 44px 20px 110px;
+    max-width: 640px;
+    margin: 0 auto;
+    color: #fff;
+    font-family: 'Anek Bangla', sans-serif;
+    box-sizing: border-box;
+}
+
+.medicao-page--foto {
+    padding-top: 36px;
+}
+
+.medicao-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    margin-bottom: 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.06);
+    color: #e8eaed;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.medicao-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(66, 255, 252, 0.45);
+}
+
+.medicao-hero {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.medicao-hero__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(6, 20, 41, 0.85) 0%, rgba(19, 69, 143, 0.75) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.medicao-hero__icon img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+}
+
+.medicao-hero__text h1 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.medicao-hero__text p {
+    margin: 0;
+    font-size: 14px;
+    color: #9aa0a6;
+    line-height: 1.45;
+}
+
+.medicao-lead {
+    font-size: 13px;
+    color: #cfcfcf;
+    line-height: 1.55;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(19, 69, 143, 0.35) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 20px;
+}
+
+.medicao-lead strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+.medicao-callout {
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.medicao-callout strong {
+    font-weight: 600;
+}
+
+.medicao-callout--info {
+    border-left: 4px solid #42fffc;
+    background: rgba(66, 255, 252, 0.06);
+}
+
+.medicao-callout--danger {
+    border-left: 4px solid #eb3223;
+    background: rgba(235, 50, 35, 0.08);
+    color: #f2f2f2;
+}
+
+.medicao-callout--success {
+    border-left: 4px solid #48742c;
+    background: rgba(72, 116, 44, 0.12);
+    color: #e8f5e9;
+}
+
+.medicao-familia-meta {
+    font-size: 13px;
+    color: #9aa0a6;
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    align-items: center;
+}
+
+.medicao-familia-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.medicao-familias {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.medicao-familia-card {
+    background: linear-gradient(135deg, #000000 0%, #13458f 100%);
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+
+.medicao-familia-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #42fffc 0%, #13458f 100%);
+    border-radius: 18px 0 0 18px;
+}
+
+.medicao-familia-card__title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 2px;
+    padding-left: 8px;
+    line-height: 1.3;
+}
+
+.medicao-familia-card__actions {
+    margin-top: 14px;
+    padding-left: 8px;
+}
+
+.medicao-empty {
+    text-align: center;
+    padding: 36px 20px;
+    border-radius: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    color: #9aa0a6;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.medicao-loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 0;
+    color: #9aa0a6;
+    font-size: 15px;
+}
+
+.medicao-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #42fffc;
+    border-radius: 50%;
+    animation: medicao-spin 0.75s linear infinite;
+}
+
+@keyframes medicao-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.medicao-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.medicao-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.medicao-btn--primary {
+    width: 100%;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #0c147b 0%, #13458f 100%);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(12, 20, 123, 0.45);
+}
+
+.medicao-btn--primary:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+.medicao-btn--success {
+    width: 100%;
+    padding: 15px 18px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #2d5016 0%, #48742c 100%);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(72, 116, 44, 0.4);
+}
+
+.medicao-btn--outline {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #e8eaed;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.medicao-btn--outline:hover:not(:disabled) {
+    border-color: rgba(66, 255, 252, 0.5);
+    background: rgba(66, 255, 252, 0.08);
+}
+
+.medicao-btn--accent {
+    padding: 10px 16px;
+    background: rgba(66, 255, 252, 0.12);
+    color: #42fffc;
+    border: 1px solid rgba(66, 255, 252, 0.35);
+}
+
+.medicao-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.medicao-btn-row .medicao-btn--outline,
+.medicao-btn-row .medicao-btn--accent {
+    flex: 1 1 auto;
+    min-width: calc(50% - 5px);
+}
+
+.medicao-file-wrap {
+    margin-bottom: 18px;
+}
+
+.medicao-file-wrap label.medicao-btn {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.medicao-video-shell {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background: #000;
+    margin-bottom: 16px;
+    aspect-ratio: 4 / 3;
+}
+
+.medicao-video-shell video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.medicao-preview-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9aa0a6;
+    margin-bottom: 8px;
+}
+
+.medicao-preview-img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.35);
+    margin-bottom: 16px;
+}
+
+.medicao-foto-titulo {
+    font-size: 15px;
+    font-weight: 500;
+    color: #cfcfcf;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    line-height: 1.45;
+}
+
 

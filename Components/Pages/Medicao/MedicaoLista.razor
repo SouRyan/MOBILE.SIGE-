@@ -1,0 +1,120 @@
+@page "/medicao"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.FamiliaCaixilho
+@using MOBILE.SIGE.Models.Caixilho
+@using MOBILE.SIGE.Services
+@using MOBILE.SIGE.Models.Obra
+@inject ObraApiService ObraApi
+@inject FamiliaCaixilhoApiService FamiliaApi
+@inject CaixilhoApiService CaixilhoApi
+@inject NavigationManager Nav
+
+<div class="medicao-page">
+    <header class="medicao-hero">
+        <div class="medicao-hero__icon" aria-hidden="true">
+            <img src="Icons/Wrench.svg" alt="" />
+        </div>
+        <div class="medicao-hero__text">
+            <h1>Medição</h1>
+            <p>Famílias de caixilhos — envio da foto no telemóvel</p>
+        </div>
+    </header>
+
+    <p class="medicao-lead">
+        Envie a foto aqui (câmara ou galeria). Na <strong>aplicação web</strong>, um gestor <strong>aprova</strong>
+        (caixilhos passam a Medido) ou <strong>rejeita</strong> (pode voltar a enviar).
+        <strong>Não é possível aprovar no telemóvel.</strong>
+    </p>
+
+    @if (_carregando)
+    {
+        <div class="medicao-loading" role="status">
+            <span class="medicao-spinner" aria-hidden="true"></span>
+            <span>A carregar famílias…</span>
+        </div>
+    }
+    else if (_erro != null)
+    {
+        <div class="medicao-callout medicao-callout--danger">@_erro</div>
+    }
+    else if (_itens.Count == 0)
+    {
+        <div class="medicao-empty">
+            Nenhuma família precisa de foto de medição neste momento (todas já medidas ou em produção).
+        </div>
+    }
+    else
+    {
+        <ul class="medicao-familias">
+            @foreach (var item in _itens)
+            {
+                <li>
+                    <article class="medicao-familia-card">
+                        <h2 class="medicao-familia-card__title">@item.Familia.DescricaoFamilia</h2>
+                        <div class="medicao-familia-meta">
+                            <span>@item.NomeObra</span>
+                            <span>·</span>
+                            <span>@item.Familia.QuantidadeCaixilhos caixilho(s)</span>
+                        </div>
+                        <div class="medicao-familia-card__actions">
+                            <button type="button" class="medicao-btn medicao-btn--primary" @onclick="() => IrFoto(item.Familia.IdFamiliaCaixilho)">
+                                Tirar e enviar foto
+                            </button>
+                        </div>
+                    </article>
+                </li>
+            }
+        </ul>
+    }
+
+    <BottomMenu />
+</div>
+
+@code {
+    private readonly List<ItemLista> _itens = new();
+    private bool _carregando = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var obras = await ObraApi.GetAllAsync() ?? new List<ObraResponseDto>();
+            var todosCaixilhos = await CaixilhoApi.GetAllAsync() ?? new List<CaixilhoResponseDto>();
+
+            foreach (var obra in obras)
+            {
+                var familias = await FamiliaApi.GetByObraAsync(obra.IdObra) ?? new List<FamiliaCaixilhoResponseDto>();
+                foreach (var f in familias)
+                {
+                    if (f.StatusFamilia == StatusFamilia.EmProducao || f.StatusFamilia == StatusFamilia.Produzida)
+                        continue;
+
+                    var cx = todosCaixilhos.Where(c => c.IdFamiliaCaixilho == f.IdFamiliaCaixilho).ToList();
+                    if (cx.Count == 0)
+                        continue;
+                    if (cx.All(c => c.StatusProducao == StatusProducao.Medido))
+                        continue;
+
+                    _itens.Add(new ItemLista(f, obra.Nome ?? $"Obra #{obra.IdObra}"));
+                }
+            }
+
+            _itens.Sort((a, b) => string.Compare(a.Familia.DescricaoFamilia, b.Familia.DescricaoFamilia, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private void IrFoto(int id) => Nav.NavigateTo($"/medicao/familia/{id}");
+
+    private sealed record ItemLista(FamiliaCaixilhoResponseDto Familia, string NomeObra);
+}
