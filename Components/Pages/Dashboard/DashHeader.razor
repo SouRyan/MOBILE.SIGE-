@@ -5,14 +5,20 @@
     </div>
 
     <div class="user">
-        <img src="@AvatarUrl" />
-        <span>@NomeUsuario</span>
+        <UserAvatarLetter Nome="@NomeUsuario" />
+        @if (string.IsNullOrWhiteSpace(NomeUsuario))
+        {
+            <span class="user-name user-name--muted">Sessão</span>
+        }
+        else
+        {
+            <span class="user-name">@NomeUsuario</span>
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public string Titulo { get; set; } = "Dashboard";
     [Parameter] public string Subtitulo { get; set; } = "Visão geral das obras";
-    [Parameter] public string AvatarUrl { get; set; } = "https://i.pravatar.cc/100";
     [Parameter] public string NomeUsuario { get; set; } = "";
 }

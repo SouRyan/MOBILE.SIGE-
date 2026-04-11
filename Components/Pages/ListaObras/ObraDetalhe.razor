@@ -1,0 +1,229 @@
+@page "/obra/{Id:int}"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Caixilho
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.FamiliaCaixilho
+@using MOBILE.SIGE.Models.Obra
+@inject ObraApiService ObraApi
+@inject FamiliaCaixilhoApiService FamiliaApi
+@inject CaixilhoApiService CaixilhoApi
+@inject NavigationManager Nav
+
+<div class="lista-container">
+
+    <div class="dash-header">
+        <div class="dash-title">
+            <button type="button"
+                    style="font-size:14px;opacity:.85;background:none;border:none;color:#fff;cursor:pointer;padding:0;margin-bottom:4px"
+                    @onclick="@(() => Nav.NavigateTo("/obras"))">← Obras</button>
+            <h1 class="mt-1">@(_obra?.Nome ?? "Obra")</h1>
+            <p>@(_obra?.Construtora ?? "")</p>
+        </div>
+    </div>
+
+    @if (_carregando)
+    {
+        <p style="opacity:.8">A carregar…</p>
+    }
+    else if (_erro != null)
+    {
+        <div style="color:#f88;padding:12px;border-radius:12px;background:rgba(234,50,35,.15);">@_erro</div>
+    }
+    else if (_obra == null)
+    {
+        <p>Obra não encontrada.</p>
+    }
+    else
+    {
+        var pm = Math.Clamp(_obra.PercentualMedicao, 0f, 100f);
+        var pp = Math.Clamp(_obra.PercentualProducao, 0f, 100f);
+
+        <div class="obra-card" style="position:relative">
+            <div class="linha-info"><span>Estado</span><span>@_obra.StatusObra</span></div>
+            <div class="linha-info"><span>Início</span><span>@_obra.DataInicio.ToString("dd/MM/yyyy")</span></div>
+            <div class="linha-info"><span>Entrega</span><span>@_obra.DataTermino.ToString("dd/MM/yyyy")</span></div>
+            @if (!string.IsNullOrEmpty(_obra.Observacoes))
+            {
+                <p class="small mt-2 mb-0" style="opacity:.85">@_obra.Observacoes</p>
+            }
+        </div>
+
+        <div class="obra-card mt-3">
+            <div class="linha-info"><span>Medição</span><span>@pm.ToString("F1")%</span></div>
+            <div class="barra-linha">
+                <div class="barra"><div class="progresso medicao" style="width:@pm%"></div></div>
+                <span class="percent">@pm.ToString("F0")%</span>
+            </div>
+            <div class="linha-info mt-2"><span>Produção</span><span>@pp.ToString("F1")%</span></div>
+            <div class="barra-linha">
+                <div class="barra"><div class="progresso producao" style="width:@pp%"></div></div>
+                <span class="percent">@pp.ToString("F0")%</span>
+            </div>
+        </div>
+
+        <section class="familia-section">
+            <div class="familia-section__header">
+                <h2>Famílias de caixilhos</h2>
+                <span>@_familias.Count</span>
+            </div>
+
+            @if (_familias.Count == 0)
+            {
+                <div class="familia-empty">
+                    Esta obra ainda não tem famílias de caixilhos cadastradas.
+                </div>
+            }
+            else
+            {
+                <div class="familia-lista">
+                    @foreach (var familia in _familias)
+                    {
+                        var precisaFoto = PrecisaFoto(familia);
+
+                        <article class="familia-card">
+                            <div class="familia-card__head">
+                                <div>
+                                    <h3 class="familia-card__title">@familia.DescricaoFamilia</h3>
+                                    <p class="familia-card__meta">
+                                        @familia.QuantidadeCaixilhos caixilho(s)
+                                        @if (familia.PesoTotal > 0)
+                                        {
+                                            <span>· @familia.PesoTotalFormatado</span>
+                                        }
+                                    </p>
+                                </div>
+                                <span class="@ClasseChipFamilia(familia, precisaFoto)">@TextoChipFamilia(familia, precisaFoto)</span>
+                            </div>
+
+                            <div class="linha-info">
+                                <span>Estado</span>
+                                <span>@FormatarStatusFamilia(familia.StatusFamilia)</span>
+                            </div>
+
+                            <div class="familia-card__actions">
+                                <button type="button"
+                                        class="familia-btn"
+                                        @onclick="@(() => Nav.NavigateTo($"/obra/{Id}/familia/{familia.IdFamiliaCaixilho}"))">
+                                    Ver detalhes
+                                </button>
+
+                                @if (precisaFoto)
+                                {
+                                    <button type="button"
+                                            class="familia-btn familia-btn--accent"
+                                            @onclick="@(() => Nav.NavigateTo($"/medicao/familia/{familia.IdFamiliaCaixilho}"))">
+                                        Ir para medição
+                                    </button>
+                                }
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+    }
+
+    <BottomMenu />
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private ObraResponseDto? _obra;
+    private readonly List<FamiliaCaixilhoResponseDto> _familias = new();
+    private readonly Dictionary<int, List<CaixilhoResponseDto>> _caixilhosPorFamilia = new();
+    private bool _carregando = true;
+    private string? _erro;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await CarregarAsync();
+    }
+
+    private async Task CarregarAsync()
+    {
+        _carregando = true;
+        _erro = null;
+        try
+        {
+            _obra = await ObraApi.GetByIdAsync(Id);
+            _familias.Clear();
+            _caixilhosPorFamilia.Clear();
+
+            if (_obra != null)
+            {
+                var familias = await FamiliaApi.GetByObraAsync(Id) ?? new List<FamiliaCaixilhoResponseDto>();
+                _familias.AddRange(familias.OrderBy(f => f.DescricaoFamilia, StringComparer.OrdinalIgnoreCase));
+
+                var todosCaixilhos = await CaixilhoApi.GetAllAsync() ?? new List<CaixilhoResponseDto>();
+                foreach (var grupo in todosCaixilhos
+                    .Where(c => _familias.Any(f => f.IdFamiliaCaixilho == c.IdFamiliaCaixilho))
+                    .GroupBy(c => c.IdFamiliaCaixilho))
+                {
+                    _caixilhosPorFamilia[grupo.Key] = grupo
+                        .OrderBy(c => c.NomeCaixilho, StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+            _obra = null;
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private bool PrecisaFoto(FamiliaCaixilhoResponseDto familia)
+    {
+        if (familia.StatusFamilia == StatusFamilia.EmProducao || familia.StatusFamilia == StatusFamilia.Produzida)
+            return false;
+
+        if (!_caixilhosPorFamilia.TryGetValue(familia.IdFamiliaCaixilho, out var caixilhos) || caixilhos.Count == 0)
+            return false;
+
+        return caixilhos.Any(c => c.StatusProducao != StatusProducao.Medido);
+    }
+
+    private static string FormatarStatusFamilia(StatusFamilia status) => status switch
+    {
+        StatusFamilia.Pendente => "Pendente",
+        StatusFamilia.EmMedicao => "Em medição",
+        StatusFamilia.Medida => "Medida",
+        StatusFamilia.EmProducao => "Em produção",
+        StatusFamilia.Produzida => "Produzida",
+        _ => status.ToString()
+    };
+
+    private static string TextoChipFamilia(FamiliaCaixilhoResponseDto familia, bool precisaFoto)
+    {
+        if (precisaFoto)
+            return "Precisa de foto";
+
+        return familia.StatusFamilia switch
+        {
+            StatusFamilia.EmProducao => "Em produção",
+            StatusFamilia.Produzida => "Produzida",
+            StatusFamilia.Medida => "Medida",
+            _ => "Acompanhar"
+        };
+    }
+
+    private static string ClasseChipFamilia(FamiliaCaixilhoResponseDto familia, bool precisaFoto)
+    {
+        if (precisaFoto)
+            return "familia-chip familia-chip--warn";
+
+        return familia.StatusFamilia switch
+        {
+            StatusFamilia.EmProducao => "familia-chip familia-chip--info",
+            StatusFamilia.Produzida => "familia-chip familia-chip--ok",
+            StatusFamilia.Medida => "familia-chip familia-chip--ok",
+            _ => "familia-chip"
+        };
+    }
+}

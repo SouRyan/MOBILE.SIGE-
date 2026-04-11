@@ -2,7 +2,33 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden; /* ← REMOVE TODA ROLAGEM */
+    overflow: hidden; /* rolagem no <main>, não no body */
+}
+body{
+    background-color: #010813;
+}
+/* Shell Blazor: conteúdo principal com scroll */
+.page {
+    height: 100%;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.page main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Padding lateral reduzido (evita “faixa” larga até às bordas) */
+article.content.app-shell {
+    padding: 0 10px 10px;
+    box-sizing: border-box;
+    max-width: 100%;
 }
 /* ===== LOGIN ===== */
 
@@ -208,8 +234,8 @@ html, body {
 
 .dashboard {
     background-color: #010813;
-    min-height: 100vh;
-    padding: 50px 20px 20px;
+    min-height: 100%;
+    padding: 16px 8px 88px;
     color: white;
     font-family: 'Anek Bangla', sans-serif;
 }
@@ -248,22 +274,73 @@ html, body {
 
 .user {
     display: flex;
-    flex-direction: column; /* ← JOGA PRA BAIXO */
+    flex-direction: column;
     align-items: center;
     text-align: center;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
-    .user img {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        margin-bottom: 6px; /* espaço entre foto e nome */
+/* Avatar: primeira letra do nome (quadrado arredondado) */
+.user-avatar {
+    flex-shrink: 0;
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #1e5cb8 0%, #0a1a3d 48%, #13458f 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.user-avatar__letter {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: #fff;
+}
+
+.user-avatar--hero {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+    .user-avatar--hero .user-avatar__letter {
+        font-size: 26px;
+    }
+
+.user-name {
+    display: block;
+    max-width: 128px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    color: #e8ecf2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    word-break: break-word;
+}
+
+    .user-name--muted {
+        font-size: 12px;
+        font-weight: 500;
+        color: #a8b0bd;
     }
 /* CARDS */
 
 .cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     gap: 5px;
     margin-top: 15px;
 }
@@ -584,7 +661,10 @@ html, body {
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
     width: 100%;
+    z-index: 50;
+    box-sizing: border-box;
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -623,8 +703,8 @@ html, body {
 /* OBRAS */
 .lista-container {
     background-color: #010813;
-    min-height: 100vh;
-    padding: 50px 20px 80px;
+    min-height: 100%;
+    padding: 16px 8px 88px;
     color: white;
     font-family: 'Anek Bangla', sans-serif;
 }
@@ -739,6 +819,28 @@ html, body {
         border-radius: 18px 0 0 18px; /* ← acompanha o card */
     }
 
+    .obra-card.yellow::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 13px;
+        background: #EBC351;
+        border-radius: 18px 0 0 18px;
+    }
+
+    .obra-card.green::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 13px;
+        background: #48742C;
+        border-radius: 18px 0 0 18px;
+    }
+
 /* TOPO */
 .topo {
     display: flex;
@@ -768,11 +870,31 @@ html, body {
     border-radius: 12px;
 }
 
+.pill.pill--green {
+    background: #48742C;
+}
+
+.pill.pill--muted {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+button.filtro {
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+}
+
 .status small {
     display: block;
     color: #EA3223;
     margin-top: 1px;
     font-size: 11px;
+}
+
+.status.status--ok small {
+    color: rgba(160, 210, 140, 0.95);
 }
 
 
@@ -820,14 +942,15 @@ html, body {
 
 
 
+/* Largura definida em style="width:…%" no markup (dados da API) */
 .medicao {
-    width: 100%;
+    min-width: 0;
     background: #48742C;
 }
 
 .producao {
-    width: 70%;
-    background: #EA3223;
+    min-width: 0;
+    background: #EB7A23;
 }
 
 /* BOTÃO */
@@ -844,6 +967,175 @@ html, body {
         padding: 6px 14px;
         color: white;
     }
+
+.familia-section {
+    margin-top: 22px;
+}
+
+.familia-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.familia-section__header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.familia-section__header span {
+    min-width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 12px;
+    color: #dfe6ee;
+}
+
+.familia-lista,
+.caixilho-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.familia-card,
+.caixilho-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 14px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.16);
+}
+
+.familia-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.familia-card__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.familia-card__meta {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: rgba(255,255,255,0.72);
+}
+
+.familia-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.familia-chip--warn {
+    background: rgba(235,195,81,0.14);
+    border-color: rgba(235,195,81,0.45);
+    color: #ffe8a3;
+}
+
+.familia-chip--info {
+    background: rgba(19,69,143,0.26);
+    border-color: rgba(66,148,255,0.4);
+    color: #d9ecff;
+}
+
+.familia-chip--ok {
+    background: rgba(72,116,44,0.18);
+    border-color: rgba(120,176,82,0.4);
+    color: #d8efc9;
+}
+
+.familia-card__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
+
+.familia-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 8px 14px;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.familia-btn--accent {
+    background: linear-gradient(180deg, #173a9f 0%, #0c1b52 100%);
+    border-color: rgba(118,160,255,0.35);
+}
+
+.familia-empty {
+    padding: 16px 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.78);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.familia-cta {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(19,69,143,0.18);
+    border: 1px solid rgba(85,143,255,0.24);
+}
+
+.familia-cta strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.familia-cta p {
+    margin: 0 0 12px;
+    color: rgba(255,255,255,0.78);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.caixilho-card__desc,
+.caixilho-card__obs {
+    margin: 0 0 10px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.8);
+}
+
+.caixilho-card__obs {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+}
 
 
 /* BASE */
@@ -939,7 +1231,10 @@ html, body {
     position: fixed;
     bottom: 0;
     left: 0;
+    right: 0;
     width: 100%;
+    z-index: 50;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     padding: 15px 1px 25px; 
@@ -976,10 +1271,10 @@ html, body {
 
 .medicao-page {
     background-color: #010813;
-    min-height: 100vh;
-    padding: 44px 20px 110px;
-    max-width: 640px;
-    margin: 0 auto;
+    min-height: 100%;
+    padding: 16px 8px 100px;
+    max-width: 100%;
+    margin: 0;
     color: #fff;
     font-family: 'Anek Bangla', sans-serif;
     box-sizing: border-box;
@@ -1320,4 +1615,409 @@ html, body {
     line-height: 1.45;
 }
 
+/* ===== CONTA / PERFIL ===== */
+.conta-page {
+    position: relative;
+    background-color: #010813;
+    min-height: 100%;
+    padding: 12px 10px 104px;
+    color: #fff;
+    font-family: 'Anek Bangla', sans-serif;
+    overflow-x: hidden;
+}
+
+.conta-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.conta-bg__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(64px);
+    opacity: 0.45;
+}
+
+.conta-bg__orb--1 {
+    width: 220px;
+    height: 220px;
+    top: -60px;
+    right: -40px;
+    background: radial-gradient(circle, #1a4a9e 0%, transparent 70%);
+}
+
+.conta-bg__orb--2 {
+    width: 180px;
+    height: 180px;
+    top: 120px;
+    left: -70px;
+    background: radial-gradient(circle, #0c3d5c 0%, transparent 70%);
+    opacity: 0.35;
+}
+
+.conta-page > *:not(.conta-bg) {
+    position: relative;
+    z-index: 1;
+}
+
+/* Hero */
+.conta-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 8px 4px 4px;
+}
+
+.conta-hero__text {
+    min-width: 0;
+}
+
+.conta-hero__title {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.conta-hero__email {
+    margin: 0;
+    font-size: 13px;
+    color: #8b95a5;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.conta-lead {
+    margin: 0 0 20px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #9aa3b0;
+    padding: 0 4px;
+}
+
+/* Secções */
+.conta-section {
+    margin-bottom: 20px;
+}
+
+.conta-section__title {
+    margin: 0 0 10px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #42fffc;
+    opacity: 0.85;
+}
+
+/* Cartões */
+.conta-card {
+    border-radius: 20px;
+    padding: 18px 16px;
+    margin-bottom: 0;
+}
+
+.conta-card--glass {
+    background: linear-gradient(
+        155deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(12, 30, 70, 0.55) 45%,
+        rgba(0, 0, 0, 0.35) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.conta-card--soft {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Campos */
+.conta-field {
+    margin-bottom: 18px;
+}
+
+.conta-field--last {
+    margin-bottom: 0;
+}
+
+.conta-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #c5ccd6;
+    margin: 0 0 8px 4px;
+    letter-spacing: 0.02em;
+}
+
+.conta-hint {
+    font-weight: 400;
+    font-size: 11px;
+    color: #7a8494;
+    text-transform: lowercase;
+}
+
+.conta-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 4px 4px 4px 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .conta-input-wrap:focus-within {
+        border-color: rgba(66, 255, 252, 0.4);
+        box-shadow: 0 0 0 3px rgba(66, 255, 252, 0.12);
+    }
+
+.conta-input-ico {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.65;
+    filter: brightness(0) invert(1);
+}
+
+.conta-input {
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    padding: 12px 12px 12px 0;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+}
+
+    .conta-input::placeholder {
+        color: rgba(255, 255, 255, 0.28);
+    }
+
+    .conta-input:focus {
+        outline: none;
+    }
+
+/* Chips organização */
+.conta-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.conta-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.conta-chip--role {
+    background: linear-gradient(135deg, rgba(30, 92, 184, 0.5), rgba(12, 20, 60, 0.6));
+    border: 1px solid rgba(66, 255, 252, 0.22);
+    color: #e8f4ff;
+}
+
+.conta-chip--job {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #dfe6ee;
+}
+
+.conta-footnote {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #6d7785;
+}
+
+/* Alertas */
+.conta-alert {
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.conta-alert--icon {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.conta-alert__check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(72, 116, 44, 0.6);
+    border: 1px solid rgba(140, 200, 100, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #c8f0a8;
+    line-height: 1;
+}
+
+.conta-alert__dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    margin-top: 5px;
+    border-radius: 50%;
+    background: #ea3223;
+    box-shadow: 0 0 12px rgba(234, 50, 35, 0.65);
+}
+
+.conta-alert--ok {
+    background: rgba(40, 80, 40, 0.25);
+    border: 1px solid rgba(100, 160, 80, 0.35);
+}
+
+.conta-alert--erro {
+    background: rgba(234, 50, 35, 0.12);
+    border: 1px solid rgba(234, 50, 35, 0.35);
+}
+
+/* Botão */
+.conta-btn {
+    position: relative;
+    width: 100%;
+    margin-top: 8px;
+    padding: 17px 20px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: linear-gradient(180deg, #1a4bbf 0%, #0c147b 45%, #081050 100%);
+    box-shadow:
+        0 10px 28px rgba(12, 20, 123, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(100, 140, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .conta-btn:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .conta-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+.conta-btn__shine {
+    position: absolute;
+    top: 0;
+    left: -40%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+
+.conta-btn__spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: conta-spin 0.7s linear infinite;
+}
+
+@keyframes conta-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Skeleton loading */
+.conta-skeleton {
+    padding: 8px 4px;
+}
+
+.conta-skeleton__avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.06) 75%);
+    background-size: 200% 100%;
+    animation: conta-shimmer 1.2s ease-in-out infinite;
+    margin-bottom: 20px;
+}
+
+.conta-skeleton__line {
+    height: 14px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,.06) 25%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.06) 75%);
+    background-size: 200% 100%;
+    animation: conta-shimmer 1.2s ease-in-out infinite;
+    margin-bottom: 10px;
+}
+
+.conta-skeleton__line--lg {
+    width: 70%;
+    height: 22px;
+}
+
+.conta-skeleton__line--sm {
+    width: 45%;
+}
+
+.conta-skeleton__card {
+    height: 220px;
+    border-radius: 20px;
+    margin-top: 24px;
+    background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.05) 75%);
+    background-size: 200% 100%;
+    animation: conta-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes conta-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.conta-muted {
+    opacity: 0.75;
+}
+
+.conta-page .validation-message {
+    color: #ffb4a8;
+    font-size: 12px;
+    margin-top: 6px;
+    margin-left: 4px;    display: block;
+}
 
