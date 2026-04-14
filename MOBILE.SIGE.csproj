@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <DefaultItemExcludes>$(DefaultItemExcludes);publish-test\**;publish\**;out\**</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);publish-test/**;publish/**;out/**;**/publish-test/**;**/publish/**;**/out/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -5,6 +5,7 @@ COPY ["MOBILE.SIGE.csproj", "./"]
 RUN dotnet restore "MOBILE.SIGE.csproj"
 
 COPY . .
+RUN rm -rf publish-test publish publish-test-fix publish-test-fix2 out
 RUN dotnet publish "MOBILE.SIGE.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
