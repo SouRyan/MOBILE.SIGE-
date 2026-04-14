@@ -8,17 +8,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      // Evita erro não tratado no service worker quando a rede cai
-      // ou quando o endpoint não está acessível temporariamente.
-      return new Response(null, { status: 503, statusText: 'Service Unavailable' });
-    })
-  );
+  event.respondWith(fetch(event.request));
 });
 
 /* Ao clicar na notificação, abre/foca a janela do app */

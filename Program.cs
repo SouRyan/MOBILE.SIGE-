@@ -9,6 +9,30 @@ using MOBILE.SIGE.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
+static Uri GetSafeBaseUri(IConfiguration configuration, string key, string fallbackUrl)
+{
+    var raw = configuration[key]?.Trim();
+    var candidate = string.IsNullOrWhiteSpace(raw) ? fallbackUrl : raw;
+
+    if (!candidate.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+        !candidate.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+    {
+        candidate = $"https://{candidate}";
+    }
+
+    if (!candidate.EndsWith('/'))
+    {
+        candidate += "/";
+    }
+
+    if (Uri.TryCreate(candidate, UriKind.Absolute, out var uri))
+    {
+        return uri;
+    }
+
+    return new Uri(fallbackUrl.EndsWith('/') ? fallbackUrl : $"{fallbackUrl}/");
+}
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -28,8 +52,8 @@ builder.Services.AddScoped(sp =>
     {
         InnerHandler = new HttpClientHandler()
     };
-    var baseUrl = builder.Configuration["ApiSige:BaseUrl"] ?? "http://localhost:5075/";
-    return new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
+    var baseUri = GetSafeBaseUri(builder.Configuration, "ApiSige:BaseUrl", "http://localhost:5075/");
+    return new HttpClient(handler) { BaseAddress = baseUri };
 });
 
 // Services
@@ -49,18 +73,14 @@ builder.Services.AddScoped<DashboardApiService>();
 builder.Services.AddScoped(sp =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = cfg["GerenciamentoWeb:BaseUrl"]?.Trim();
-    if (string.IsNullOrEmpty(baseUrl))
-        baseUrl = "http://localhost:5192/";
-    if (!baseUrl.EndsWith('/'))
-        baseUrl += "/";
+    var baseUri = GetSafeBaseUri(cfg, "GerenciamentoWeb:BaseUrl", "http://localhost:5192/");
 
     var tokenStorage = sp.GetRequiredService<TokenStorageService>();
     var handler = new JwtAuthHandler(tokenStorage)
     {
         InnerHandler = new HttpClientHandler()
     };
-    var http = new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
+    var http = new HttpClient(handler) { BaseAddress = baseUri };
     return new FamiliaMedicaoWebClient(http);
 });
 
@@ -72,6 +92,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseAntiforgery();
+app.UseStaticFiles();
 
 var manifestPath = Path.Combine(app.Environment.ContentRootPath, "Pwa", "manifest.webmanifest");
 app.MapGet("/manifest.webmanifest", () =>
