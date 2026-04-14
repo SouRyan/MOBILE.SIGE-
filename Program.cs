@@ -1,6 +1,8 @@
 using API.SIGE.ApiServices;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.SignalR;
 using MOBILE.SIGE.ApiServices;
 using MOBILE.SIGE.Components;
 using MOBILE.SIGE.Interfaces;
@@ -35,6 +37,19 @@ static Uri GetSafeBaseUri(IConfiguration configuration, string key, string fallb
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Captura de imagem via JS interop pode gerar payloads grandes.
+// Aumentamos os limites do circuito para evitar desconexão ("reloading server").
+builder.Services.Configure<HubOptions>(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+});
+
+builder.Services.Configure<CircuitOptions>(options =>
+{
+    options.JSInteropDefaultCallTimeout = TimeSpan.FromSeconds(120);
+    options.DetailedErrors = builder.Environment.IsDevelopment();
+});
 
 // Auth
 builder.Services.AddScoped<TokenStorageService>();

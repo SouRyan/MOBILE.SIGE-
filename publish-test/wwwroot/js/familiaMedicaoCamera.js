@@ -29,14 +29,20 @@ export function stopPreview(video) {
     }
 }
 
-export function captureToDataUrl(video, quality) {
+export function captureToDataUrl(video, quality, maxDimension) {
     const w = video.videoWidth;
     const h = video.videoHeight;
     if (!w || !h) return null;
+
+    const maxSize = Number.isFinite(maxDimension) && maxDimension > 0 ? maxDimension : 1280;
+    const scale = Math.min(1, maxSize / Math.max(w, h));
+    const targetW = Math.max(1, Math.round(w * scale));
+    const targetH = Math.max(1, Math.round(h * scale));
+
     const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = targetW;
+    canvas.height = targetH;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, w, h);
-    return canvas.toDataURL('image/jpeg', quality ?? 0.85);
+    ctx.drawImage(video, 0, 0, targetW, targetH);
+    return canvas.toDataURL('image/jpeg', quality ?? 0.75);
 }
