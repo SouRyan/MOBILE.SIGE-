@@ -1,0 +1,7 @@
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker
+      .register('/service-worker.js', { scope: '/' })
+      .catch(function () { /* HTTP não seguro ou browser sem suporte */ });
+  });
+}
