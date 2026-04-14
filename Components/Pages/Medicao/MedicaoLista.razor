@@ -52,11 +52,15 @@
             {
                 <li>
                     <article class="medicao-familia-card">
-                        <h2 class="medicao-familia-card__title">@item.Familia.DescricaoFamilia</h2>
+                        <h2 class="medicao-familia-card__obra-name">Obra: @item.NomeObra</h2>
+                        <p class="medicao-familia-card__title">Família: @item.Familia.DescricaoFamilia</p>
                         <div class="medicao-familia-meta">
-                            <span>@item.NomeObra</span>
-                            <span>·</span>
                             <span>@item.Familia.QuantidadeCaixilhos caixilho(s)</span>
+                            @if (item.Familia.PesoTotal > 0)
+                            {
+                                <span>·</span>
+                                <span>@item.Familia.PesoTotalFormatado</span>
+                            }
                         </div>
                         <div class="medicao-familia-card__actions">
                             <button type="button" class="medicao-btn medicao-btn--primary" @onclick="() => IrFoto(item.Familia.IdFamiliaCaixilho)">
@@ -69,7 +73,7 @@
         </ul>
     }
 
-    <BottomMenu />
+
 </div>
 
 @code {

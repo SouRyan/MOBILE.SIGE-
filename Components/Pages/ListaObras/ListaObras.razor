@@ -1,128 +1,227 @@
 ﻿@page "/obras"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.Obra
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject ObraApiService ObraApi
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 
 <div class="lista-container">
 
-    <!-- HEADER -->
     <div class="dash-header">
         <div class="dash-title">
-            <h1>Lista de Obras</h1>
-            <p>Obras sendo executadas</p>
+            <h1>Obras</h1>
+            <p>Medição e produção (dados da API)</p>
         </div>
-
         <div class="user">
-            <img src="https://i.pravatar.cc/100" />
-            <span>Ryan Bryan - Gerente</span>
+            <UserAvatarLetter Nome="@_nomeUsuario" />
+            <span class="user-name">@_nomeUsuario</span>
         </div>
     </div>
 
-    <!-- BUSCA -->
     <div class="busca">
-        <img src="Icons/Search.svg" class="busca-icon" />
-        <input type="text" placeholder="Buscar por obra ou cliente..." />
+        <img src="Icons/Search.svg" class="busca-icon" alt="" />
+        <input type="search"
+               placeholder="Obra ou construtora…"
+               @bind="_busca"
+               @bind:event="oninput"
+               @bind:after="AplicarFiltros" />
     </div>
 
-
-
-    <!-- FILTROS -->
     <div class="filtros-container">
         <div class="filtros">
-
-            <div class="filtro ativo">Todas</div>
-            <div class="filtro red">Atrasadas</div>
-            <div class="filtro yellow">Em Produção</div>
-            <div class="filtro green">Concluídas</div>
-
+            <button type="button"
+                    class="filtro @(_filtro == FiltroObras.Todas ? "ativo" : null)"
+                    @onclick="@(() => DefinirFiltro(FiltroObras.Todas))">Todas</button>
+            <button type="button"
+                    class="filtro red @(_filtro == FiltroObras.Atrasadas ? "ativo" : null)"
+                    @onclick="@(() => DefinirFiltro(FiltroObras.Atrasadas))">Atrasadas</button>
+            <button type="button"
+                    class="filtro yellow @(_filtro == FiltroObras.EmProducao ? "ativo" : null)"
+                    @onclick="@(() => DefinirFiltro(FiltroObras.EmProducao))">Em produção</button>
+            <button type="button"
+                    class="filtro green @(_filtro == FiltroObras.Concluidas ? "ativo" : null)"
+                    @onclick="@(() => DefinirFiltro(FiltroObras.Concluidas))">Concluídas</button>
         </div>
     </div>
 
+    @if (_carregando)
+    {
+        <p class="mt-3" style="opacity:.8">A carregar obras…</p>
+    }
+    else if (_erro != null)
+    {
+        <div class="mt-3" style="color:#f88;padding:12px;border-radius:12px;background:rgba(234,50,35,.15);">
+            @_erro
+        </div>
+    }
+    else if (_visiveis.Count == 0)
+    {
+        <p class="mt-3" style="opacity:.75">Nenhuma obra neste filtro.</p>
+    }
+    else
+    {
+        @foreach (var o in _visiveis)
+        {
+            var cardClass = ClasseCartao(o);
+            var (pillText, pillClass, dataLabel) = RotuloStatus(o);
+            var pm = ClampPct(o.PercentualMedicao);
+            var pp = ClampPct(o.PercentualProducao);
 
+            <div class="obra-card @cardClass" @onclick="@(() => Nav.NavigateTo($"/obra/{o.IdObra}"))">
+                <div class="topo">
+                    <span class="titulo">#@o.IdObra — @o.Nome</span>
+                    <div class="status @(ObraConcluida(o) ? "status--ok" : null)">
+                        <span class="pill @pillClass">@pillText</span>
+                        @if (dataLabel != null)
+                        {
+                            <small>@dataLabel</small>
+                        }
+                    </div>
+                </div>
 
-
-    <!-- CARDS -->
-    <div class="obra-card red">
-
-        <!-- TOPO -->
-        <div class="topo">
-            <span class="titulo">#035 - Residência Vila Verde</span>
-
-            <div class="status">
-                <span class="pill">Atrasado</span>
-                <small>04/04/2026</small>
+                <div class="obra-card__progress">
+                    <div class="obra-card__progress-row">
+                        <span class="obra-card__progress-label">Medição</span>
+                        <div class="barra">
+                            <div class="progresso medicao" style="width:@pm%"></div>
+                        </div>
+                        <span class="percent">@pm.ToString("F0")%</span>
+                    </div>
+                    <div class="obra-card__progress-row">
+                        <span class="obra-card__progress-label">Produção</span>
+                        <div class="barra">
+                            <div class="progresso producao" style="width:@pp%"></div>
+                        </div>
+                        <span class="percent">@pp.ToString("F0")%</span>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- LINHA -->
-        <div class="divider"></div>
-
-        <!-- MEDIÇÃO -->
-        <div class="linha-info">
-            <span>Medição</span>
-        </div>
-
-        <div class="barra-linha">
-            <div class="barra">
-                <div class="progresso medicao"></div>
-            </div>
-            <span class="percent">100%</span>
-        </div>
-
-        <!-- PRODUÇÃO -->
-        <div class="linha-info">
-            <span>Produção</span>
-        </div>
-
-        <div class="barra-linha">
-            <div class="barra">
-                <div class="progresso producao"></div>
-            </div>
-            <span class="percent">70%</span>
-        </div>
-
-        <!-- BOTÃO -->
-        <div class="acoes">
-            <button>Detalhes</button>
-        </div>
-
-    </div>
-
-
-   
-    <!-- MENU -->
-<div class="menu">
-
-    <!-- Dashboard -->
-    <NavLink href="/dashboard" class="menu-item" ActiveClass="active">
-        <img src="Icons/Analytics.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Obras -->
-    <NavLink href="/obras" class="menu-item" ActiveClass="active">
-        <img src="Icons/Roadblock.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Medição -->
-    <NavLink href="/medicao" class="menu-item" ActiveClass="active">
-        <img src="Icons/Wrench.svg" class="card-icon" />
-    </NavLink>
-
-    <!-- Conferência -->
-    <NavLink href="/conferencia" class="menu-item" ActiveClass="active">
-        <img src="Icons/Check Mark.svg" class="card-icon" />
-    </NavLink>
-
-</div>
-
-
-
-
-
-
-
-
-
-
+        }
+    }
 
 
 </div>
 
+@code {
+    private enum FiltroObras { Todas, Atrasadas, EmProducao, Concluidas }
 
+    private readonly List<ObraResponseDto> _todas = new();
+    private readonly List<ObraResponseDto> _visiveis = new();
+    private FiltroObras _filtro = FiltroObras.Todas;
+    private string _busca = "";
+    private string _nomeUsuario = "Utilizador";
+    private bool _carregando = true;
+    private string? _erro;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            await CarregarNomeAsync();
+            var lista = await ObraApi.GetAllAsync();
+            _todas.Clear();
+            if (lista != null)
+                _todas.AddRange(lista);
+            AplicarFiltros();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _carregando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CarregarNomeAsync()
+    {
+        var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+        var u = auth.User;
+        var n = u.FindFirst("unique_name")?.Value
+                ?? u.FindFirst(ClaimTypes.Name)?.Value;
+        if (!string.IsNullOrEmpty(n))
+            _nomeUsuario = n;
+        var cargo = u.FindFirst("role")?.Value ?? u.FindFirst(ClaimTypes.Role)?.Value;
+        if (!string.IsNullOrEmpty(cargo))
+            _nomeUsuario += $" — {cargo}";
+    }
+
+    private void DefinirFiltro(FiltroObras f)
+    {
+        _filtro = f;
+        AplicarFiltros();
+    }
+
+    private void AplicarFiltros()
+    {
+        IEnumerable<ObraResponseDto> q = _todas;
+
+        var hoje = DateTime.Today;
+        q = _filtro switch
+        {
+            FiltroObras.Concluidas => q.Where(o => ObraConcluida(o)),
+            FiltroObras.Atrasadas => q.Where(o => !ObraConcluida(o) && o.DataTermino.Date < hoje),
+            FiltroObras.EmProducao => q.Where(o =>
+                !ObraConcluida(o)
+                && o.DataTermino.Date >= hoje
+                && (o.StatusObra == StatusObra.EmProducao
+                    || (o.PercentualProducao > 0 && o.PercentualProducao < 100f))),
+            _ => q
+        };
+
+        var termo = _busca.Trim();
+        if (termo.Length > 0)
+        {
+            q = q.Where(o =>
+                (o.Nome?.Contains(termo, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (o.Construtora?.Contains(termo, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+
+        _visiveis.Clear();
+        _visiveis.AddRange(q.OrderByDescending(o => o.IdObra));
+        StateHasChanged();
+    }
+
+    private static bool ObraConcluida(ObraResponseDto o)
+        => o.Finalizado || o.StatusObra == StatusObra.Concluida;
+
+    private static float ClampPct(float v) => Math.Clamp(v, 0f, 100f);
+
+    private static string ClasseCartao(ObraResponseDto o)
+    {
+        if (ObraConcluida(o)) return "green";
+        var hoje = DateTime.Today;
+        if (o.DataTermino.Date < hoje) return "red";
+        if (o.StatusObra == StatusObra.EmProducao || o.PercentualProducao > 0)
+            return "yellow";
+        return "";
+    }
+
+    private static (string pill, string pillExtraClass, string? dataLinha) RotuloStatus(ObraResponseDto o)
+    {
+        if (ObraConcluida(o))
+            return ("Concluída", "pill--green", o.DataConclusao?.ToLocalTime().ToString("dd/MM/yyyy"));
+
+        var hoje = DateTime.Today;
+        if (o.DataTermino.Date < hoje)
+            return ("Atrasada", "", $"Prazo {o.DataTermino:dd/MM/yyyy}");
+
+        var st = o.StatusObra switch
+        {
+            StatusObra.Cadastrada => "Cadastrada",
+            StatusObra.Verificada => "Verificada",
+            StatusObra.EmMedicao => "Em medição",
+            StatusObra.EmProducao => "Em produção",
+            StatusObra.Concluida => "Concluída",
+            _ => o.StatusObra.ToString()
+        };
+        return (st, "pill--muted", $"Entrega {o.DataTermino:dd/MM/yyyy}");
+    }
+}

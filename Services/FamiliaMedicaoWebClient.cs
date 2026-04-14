@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MOBILE.SIGE.Services;
 
@@ -8,6 +9,7 @@ namespace MOBILE.SIGE.Services;
 public class FamiliaMedicaoWebClient
 {
     private readonly HttpClient _http;
+    private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
     public FamiliaMedicaoWebClient(HttpClient http)
     {
@@ -26,5 +28,29 @@ public class FamiliaMedicaoWebClient
 
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         return (false, $"{(int)response.StatusCode}: {body}");
+    }
+
+    public async Task<MedicaoFotoResult?> ObterFotoAsync(int idFamilia, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _http.GetAsync($"api/familia-caixilho/{idFamilia}/medicao-foto", cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadFromJsonAsync<MedicaoFotoResult>(JsonOpts, cancellationToken);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public class MedicaoFotoResult
+    {
+        public string FotoBase64 { get; set; } = string.Empty;
+        public DateTime EnviadoEm { get; set; }
+        public string? EnviadoPor { get; set; }
+        public bool Aprovada { get; set; }
     }
 }

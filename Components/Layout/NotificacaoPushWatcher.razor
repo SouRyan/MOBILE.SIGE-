@@ -1,0 +1,98 @@
+@using MOBILE.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Notificacao
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NotificacaoApiService NotificacaoService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+@implements IDisposable
+
+@code {
+    private Timer? _timer;
+    private bool _permissionRequested;
+    private int _lastSeenId;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            // Pedir permissão de notificação na primeira vez
+            var permission = await JS.InvokeAsync<string>("SigeNotificacao.requestPermission");
+            _permissionRequested = true;
+
+            // Recuperar último ID visto do localStorage
+            _lastSeenId = await JS.InvokeAsync<int>("SigeNotificacao.getLastSeenId");
+
+            // Iniciar polling a cada 20 segundos
+            _timer = new Timer(async _ => await CheckNotificacoes(), null, TimeSpan.Zero, TimeSpan.FromSeconds(20));
+        }
+        catch { /* JS interop pode falhar durante prerender */ }
+    }
+
+    private async Task CheckNotificacoes()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            var idClaim = user.FindFirst("nameid")?.Value
+                       ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(idClaim, out var idUsuario) || idUsuario == 0)
+                return;
+
+            var notificacoes = await NotificacaoService.GetByUsuarioAsync(idUsuario);
+            if (notificacoes == null || notificacoes.Count == 0) return;
+
+            // Filtrar apenas as novas (ID maior que o último visto) e não lidas
+            var novas = notificacoes
+                .Where(n => !n.Lida && n.IdNotificacao > _lastSeenId)
+                .OrderBy(n => n.IdNotificacao)
+                .ToList();
+
+            if (novas.Count == 0) return;
+
+            // Mostrar cada notificação nova como push
+            foreach (var n in novas)
+            {
+                await InvokeAsync(async () =>
+                {
+                    try
+                    {
+                        await JS.InvokeVoidAsync("SigeNotificacao.show",
+                            n.Titulo,
+                            n.Mensagem,
+                            "/icon-192.png",
+                            "/dashboard",
+                            $"sige-notif-{n.IdNotificacao}");
+                    }
+                    catch { }
+                });
+            }
+
+            // Atualizar último ID visto
+            var maxId = novas.Max(n => n.IdNotificacao);
+            if (maxId > _lastSeenId)
+            {
+                _lastSeenId = maxId;
+                await InvokeAsync(async () =>
+                {
+                    try
+                    {
+                        await JS.InvokeVoidAsync("SigeNotificacao.setLastSeenId", maxId);
+                    }
+                    catch { }
+                });
+            }
+        }
+        catch { /* Silenciar erros de polling */ }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

@@ -7,7 +7,7 @@
 
 <div class="page">
     <main>
-        <article class="content px-4">
+        <article class="content app-shell">
             @if (_loading)
             {
                 <p>Carregando...</p>
@@ -18,6 +18,30 @@
             }
         </article>
     </main>
+    @if (!_loading && _showMenu)
+    {
+        <NotificacaoPushWatcher />
+    }
+    @if (!_loading && _showMenu)
+    {
+        <nav class="menu" aria-label="Navegação principal">
+            <NavLink href="/dashboard" class="menu-item" ActiveClass="active" title="Início">
+                <img src="Icons/Analytics.svg" class="card-icon" alt="" />
+            </NavLink>
+            <NavLink href="/obras" class="menu-item" ActiveClass="active" title="Obras">
+                <img src="Icons/Roadblock.svg" class="card-icon" alt="" />
+            </NavLink>
+            <NavLink href="/medicao" class="menu-item" ActiveClass="active" title="Medição">
+                <img src="Icons/Wrench.svg" class="card-icon" alt="" />
+            </NavLink>
+            <NavLink href="/producao" class="menu-item" ActiveClass="active" title="Produção">
+                <img src="Icons/Services.svg" class="card-icon" alt="" />
+            </NavLink>
+            <NavLink href="/conta" class="menu-item" ActiveClass="active" title="Conta">
+                <img src="Icons/Email.svg" class="card-icon" alt="" />
+            </NavLink>
+        </nav>
+    }
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -30,6 +54,7 @@
 
 @code {
     private bool _loading = true;
+    private bool _showMenu;
 
     protected override void OnInitialized()
     {
@@ -55,6 +80,7 @@
         {
             var isAuthenticated = await AuthService.IsAuthenticatedAsync();
             _loading = false;
+            _showMenu = isAuthenticated && !IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage();
 
             if (!isAuthenticated && !IsLoginPage() && !IsRecuperarSenhaPage() && !IsCodigoPage())
             {

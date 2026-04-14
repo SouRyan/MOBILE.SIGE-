@@ -1,0 +1,23 @@
+<div class="@CssClass" role="img" aria-label="@AriaLabel">
+    <span class="user-avatar__letter">@Letra</span>
+</div>
+
+@code {
+    [Parameter] public string? Nome { get; set; }
+    [Parameter] public string CssClass { get; set; } = "user-avatar";
+
+    private string AriaLabel =>
+        string.IsNullOrWhiteSpace(Nome) ? "Utilizador" : Nome.Trim();
+
+    private string Letra
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Nome)) return "?";
+            var parts = Nome.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length == 0) return "?";
+            var first = parts[0];
+            return first.Length == 0 ? "?" : char.ToUpperInvariant(first[0]).ToString();
+        }
+    }
+}

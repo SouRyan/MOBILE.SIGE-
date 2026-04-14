@@ -15,13 +15,10 @@
 @inject ObraApiService ObraService
 @inject AuthenticationStateProvider AuthStateProvider
 
-<button @onclick="Logout">Logout</button>
-
 <div class="dashboard">
 
     <DashHeader Titulo="Dashboard"
                 Subtitulo="Visão geral das obras"
-                AvatarUrl="https://i.pravatar.cc/100"
                 NomeUsuario="@nomeUsuario" />
 
     @if (loading)
@@ -79,7 +76,6 @@
         </ObrasList>
     }
 
-    <BottomMenu />
 
 </div>
 

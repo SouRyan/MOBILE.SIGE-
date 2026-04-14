@@ -42,7 +42,7 @@ builder.Services.AddScoped<CargoApiService>();
 builder.Services.AddScoped<TipoUsuarioApiService>();
 builder.Services.AddScoped<MedicaoApiService>();
 builder.Services.AddScoped<ProducaoFamiliaApiService>();
-//builder.Services.AddScoped<AnexoApiService>();
+builder.Services.AddScoped<AnexoApiService>();
 builder.Services.AddScoped<NotificacaoApiService>();
 builder.Services.AddScoped<DashboardApiService>();
 

@@ -1,0 +1,258 @@
+@page "/conta"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Usuario
+@using MOBILE.SIGE.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject UsuarioApiService UsuarioApi
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+<div class="conta-page">
+    <div class="conta-bg" aria-hidden="true">
+        <div class="conta-bg__orb conta-bg__orb--1"></div>
+        <div class="conta-bg__orb conta-bg__orb--2"></div>
+    </div>
+
+    @if (_carregando)
+    {
+        <div class="conta-skeleton">
+            <div class="conta-skeleton__avatar"></div>
+            <div class="conta-skeleton__line conta-skeleton__line--lg"></div>
+            <div class="conta-skeleton__line conta-skeleton__line--sm"></div>
+            <div class="conta-skeleton__card"></div>
+        </div>
+    }
+    else if (_erroCarregar != null)
+    {
+        <div class="conta-alert conta-alert--erro conta-alert--icon">
+            <span class="conta-alert__dot" aria-hidden="true"></span>
+            <span>@_erroCarregar</span>
+        </div>
+    }
+    else
+    {
+        <header class="conta-hero">
+            <UserAvatarLetter Nome="@(_orig?.NomeUsuario ?? _form.NomeUsuario)" CssClass="user-avatar user-avatar--hero" />
+            <div class="conta-hero__text">
+                <h1 class="conta-hero__title">@(_orig?.NomeUsuario ?? "Perfil")</h1>
+                <p class="conta-hero__email">@(_orig?.Email ?? "")</p>
+            </div>
+        </header>
+
+        <p class="conta-lead">Atualize os seus dados. O tipo de utilizador só pode ser alterado na administração.</p>
+
+        @if (!string.IsNullOrEmpty(_mensagemOk))
+        {
+            <div class="conta-alert conta-alert--ok conta-alert--icon">
+                <span class="conta-alert__check" aria-hidden="true">✓</span>
+                <span>@_mensagemOk</span>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(_mensagemErro))
+        {
+            <div class="conta-alert conta-alert--erro conta-alert--icon">
+                <span class="conta-alert__dot" aria-hidden="true"></span>
+                <span>@_mensagemErro</span>
+            </div>
+        }
+
+        <EditForm Model="_form" OnValidSubmit="GuardarAsync">
+            <DataAnnotationsValidator />
+
+            <section class="conta-section">
+                <h2 class="conta-section__title">Dados pessoais</h2>
+                <div class="conta-card conta-card--glass">
+                    <div class="conta-field">
+                        <label class="conta-label" for="nome">Nome completo</label>
+                        <div class="conta-input-wrap">
+                            <img src="Icons/Services.svg" class="conta-input-ico" alt="" />
+                            <InputText id="nome" @bind-Value="_form.NomeUsuario" class="conta-input" autocomplete="name" placeholder="O seu nome" />
+                        </div>
+                        <ValidationMessage For="@(() => _form.NomeUsuario)" />
+                    </div>
+                    <div class="conta-field">
+                        <label class="conta-label" for="email">E-mail</label>
+                        <div class="conta-input-wrap">
+                            <img src="Icons/Email.svg" class="conta-input-ico" alt="" />
+                            <InputText id="email" type="email" @bind-Value="_form.Email" class="conta-input" autocomplete="email" placeholder="email@empresa.pt" />
+                        </div>
+                        <ValidationMessage For="@(() => _form.Email)" />
+                    </div>
+                    <div class="conta-field">
+                        <label class="conta-label" for="tel">Telefone</label>
+                        <div class="conta-input-wrap">
+                            <img src="Icons/Bill.svg" class="conta-input-ico" alt="" />
+                            <InputText id="tel" @bind-Value="_form.Telefone" class="conta-input" autocomplete="tel" placeholder="+351 …" />
+                        </div>
+                        <ValidationMessage For="@(() => _form.Telefone)" />
+                    </div>
+                    <div class="conta-field conta-field--last">
+                        <label class="conta-label" for="senha">Nova palavra-passe <span class="conta-hint">opcional</span></label>
+                        <div class="conta-input-wrap">
+                            <img src="Icons/Lock.svg" class="conta-input-ico" alt="" />
+                            <InputText id="senha" type="password" @bind-Value="_form.NovaSenha" class="conta-input" autocomplete="new-password" placeholder="Deixe vazio para manter" />
+                        </div>
+                        <ValidationMessage For="@(() => _form.NovaSenha)" />
+                    </div>
+                </div>
+            </section>
+
+            @if (_orig != null)
+            {
+                <section class="conta-section">
+                    <h2 class="conta-section__title">Na organização</h2>
+                    <div class="conta-card conta-card--soft">
+                        <div class="conta-chip-row">
+                            <span class="conta-chip conta-chip--role">@(_orig.NomeTipoUsuario ?? "—")</span>
+                        </div>
+                        <p class="conta-footnote">Estes valores são definidos pelos administradores do sistema.</p>
+                    </div>
+                </section>
+            }
+
+            <button type="submit" class="conta-btn" disabled="@_aGuardar">
+                <span class="conta-btn__shine" aria-hidden="true"></span>
+                @if (_aGuardar)
+                {
+                    <span class="conta-btn__spinner" aria-hidden="true"></span>
+                    <span>A guardar…</span>
+                }
+                else
+                {
+                    <span>Guardar alterações</span>
+                }
+            </button>
+        </EditForm>
+
+        <button type="button" class="conta-btn conta-btn--logout" @onclick="LogoutAsync">
+            <span>Sair da conta</span>
+        </button>
+    }
+
+
+</div>
+
+@code {
+    private UsuarioResponseDto? _orig;
+    private readonly PerfilFormModel _form = new();
+    private bool _carregando = true;
+    private bool _aGuardar;
+    private string? _erroCarregar;
+    private string? _mensagemOk;
+    private string? _mensagemErro;
+    private int _idUsuario;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var idClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? auth.User.FindFirst("nameid")?.Value;
+            if (!int.TryParse(idClaim, out _idUsuario) || _idUsuario <= 0)
+            {
+                _erroCarregar = "Não foi possível identificar o utilizador. Inicie sessão novamente.";
+                return;
+            }
+
+            _orig = await UsuarioApi.GetByIdAsync(_idUsuario);
+            if (_orig == null)
+            {
+                _erroCarregar = "Utilizador não encontrado.";
+                return;
+            }
+
+            _form.NomeUsuario = _orig.NomeUsuario;
+            _form.Email = _orig.Email;
+            _form.Telefone = _orig.Telefone;
+            _form.NovaSenha = null;
+        }
+        catch (Exception ex)
+        {
+            _erroCarregar = ex.Message;
+        }
+        finally
+        {
+            _carregando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GuardarAsync()
+    {
+        _mensagemOk = null;
+        _mensagemErro = null;
+        if (_orig == null) return;
+
+        if (!string.IsNullOrWhiteSpace(_form.NovaSenha) && _form.NovaSenha.Length < 6)
+        {
+            _mensagemErro = "A nova palavra-passe deve ter pelo menos 6 caracteres.";
+            return;
+        }
+
+        _aGuardar = true;
+        try
+        {
+            var dto = new UsuarioUpdateDto
+            {
+                NomeUsuario = _form.NomeUsuario.Trim(),
+                Email = _form.Email.Trim(),
+                Telefone = _form.Telefone.Trim(),
+                IdTipoUsuario = _orig.IdTipoUsuario,
+                Senha = string.IsNullOrWhiteSpace(_form.NovaSenha) ? null : _form.NovaSenha
+            };
+
+            var resp = await UsuarioApi.UpdateAsync(_idUsuario, dto);
+            if (resp.IsSuccessStatusCode)
+            {
+                _form.NovaSenha = null;
+                _mensagemOk = "Alterações guardadas. O nome no menu pode só atualizar depois de voltar a iniciar sessão.";
+                _orig = await UsuarioApi.GetByIdAsync(_idUsuario) ?? _orig;
+            }
+            else
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                _mensagemErro = string.IsNullOrWhiteSpace(body)
+                    ? $"Não foi possível guardar ({(int)resp.StatusCode})."
+                    : body;
+            }
+        }
+        catch (Exception ex)
+        {
+            _mensagemErro = ex.Message;
+        }
+        finally
+        {
+            _aGuardar = false;
+        }
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+
+    private sealed class PerfilFormModel
+    {
+        [Required(ErrorMessage = "Indique o nome.")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Nome entre 2 e 50 caracteres.")]
+        public string NomeUsuario { get; set; } = "";
+
+        [Required(ErrorMessage = "Indique o e-mail.")]
+        [EmailAddress(ErrorMessage = "E-mail inválido.")]
+        [StringLength(100)]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Indique o telefone.")]
+        [StringLength(20, MinimumLength = 8, ErrorMessage = "Telefone inválido.")]
+        public string Telefone { get; set; } = "";
+
+        public string? NovaSenha { get; set; }
+    }
+}

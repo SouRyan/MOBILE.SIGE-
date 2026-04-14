@@ -1,0 +1,153 @@
+@page "/producao"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.FamiliaCaixilho
+@using MOBILE.SIGE.Models.Obra
+@using MOBILE.SIGE.Services
+@inject ObraApiService ObraApi
+@inject FamiliaCaixilhoApiService FamiliaApi
+@inject NavigationManager Nav
+
+<div class="producao-page">
+    <header class="producao-hero">
+        <div class="producao-hero__icon" aria-hidden="true">
+            <img src="Icons/Services.svg" alt="" />
+        </div>
+        <div class="producao-hero__text">
+            <h1>Producao</h1>
+            <p>Familias liberadas para producao</p>
+        </div>
+    </header>
+
+    <p class="producao-lead">
+        Gerencie a producao das familias de caixilhos. <strong>Inicie</strong>, <strong>pause</strong> ou
+        <strong>finalize</strong> a producao e envie observacoes.
+        A aprovacao final e feita na <strong>aplicacao web</strong>.
+    </p>
+
+    @if (_carregando)
+    {
+        <div class="producao-loading" role="status">
+            <span class="producao-spinner" aria-hidden="true"></span>
+            <span>A carregar familias...</span>
+        </div>
+    }
+    else if (_erro != null)
+    {
+        <div class="producao-callout producao-callout--danger">@_erro</div>
+    }
+    else if (_itens.Count == 0)
+    {
+        <div class="producao-empty">
+            Nenhuma familia pronta para producao neste momento.
+        </div>
+    }
+    else
+    {
+        <ul class="producao-familias">
+            @foreach (var item in _itens)
+            {
+                <li>
+                    <article class="producao-familia-card">
+                        <div class="producao-familia-card__header">
+                            <h2 class="producao-familia-card__title">Obra: @item.NomeObra</h2>
+                            <span class="producao-status-badge producao-status-badge--@GetStatusClass(item.Familia.StatusFamilia)">
+                                @GetStatusText(item.Familia.StatusFamilia)
+                            </span>
+                        </div>
+                        <p class="producao-familia-card__subtitle">Família: @item.Familia.DescricaoFamilia</p>
+                        <div class="producao-familia-meta">
+                            <span>@item.Familia.QuantidadeCaixilhos caixilho(s)</span>
+                            @if (item.Familia.PesoTotal > 0)
+                            {
+                                <span>·</span>
+                                <span>@item.Familia.PesoTotalFormatado</span>
+                            }
+                        </div>
+                        <div class="producao-familia-card__actions">
+                            <button type="button" class="producao-btn producao-btn--primary"
+                                    @onclick="() => IrDetalhe(item.Familia.IdFamiliaCaixilho)">
+                                Gerenciar producao
+                            </button>
+                        </div>
+                    </article>
+                </li>
+            }
+        </ul>
+    }
+
+
+</div>
+
+@code {
+    private readonly List<ItemLista> _itens = new();
+    private bool _carregando = true;
+    private string? _erro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var obras = await ObraApi.GetAllAsync() ?? new List<ObraResponseDto>();
+
+            foreach (var obra in obras)
+            {
+                var familias = await FamiliaApi.GetByObraAsync(obra.IdObra) ?? new List<FamiliaCaixilhoResponseDto>();
+                foreach (var f in familias)
+                {
+                    if (f.StatusFamilia == StatusFamilia.Produzida)
+                        continue;
+
+                    if (f.StatusFamilia == StatusFamilia.Medida ||
+                        f.StatusFamilia == StatusFamilia.EmProducao)
+                    {
+                        _itens.Add(new ItemLista(f, obra.Nome ?? $"Obra #{obra.IdObra}"));
+                    }
+                }
+            }
+
+            _itens.Sort((a, b) =>
+            {
+                var statusOrder = GetStatusOrder(a.Familia.StatusFamilia)
+                    .CompareTo(GetStatusOrder(b.Familia.StatusFamilia));
+                return statusOrder != 0
+                    ? statusOrder
+                    : string.Compare(a.Familia.DescricaoFamilia, b.Familia.DescricaoFamilia, StringComparison.OrdinalIgnoreCase);
+            });
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+
+    private void IrDetalhe(int id) => Nav.NavigateTo($"/producao/familia/{id}");
+
+    private static string GetStatusClass(StatusFamilia s) => s switch
+    {
+        StatusFamilia.EmProducao => "progress",
+        StatusFamilia.Medida => "ready",
+        _ => "default"
+    };
+
+    private static string GetStatusText(StatusFamilia s) => s switch
+    {
+        StatusFamilia.EmProducao => "Em producao",
+        StatusFamilia.Medida => "Pronta",
+        _ => s.ToString()
+    };
+
+    private static int GetStatusOrder(StatusFamilia s) => s switch
+    {
+        StatusFamilia.EmProducao => 0,
+        StatusFamilia.Medida => 1,
+        _ => 2
+    };
+
+    private sealed record ItemLista(FamiliaCaixilhoResponseDto Familia, string NomeObra);
+}

@@ -1,0 +1,434 @@
+@page "/producao/familia/{FamiliaId:int}"
+@rendermode InteractiveServer
+@using API.SIGE.ApiServices
+@using MOBILE.SIGE.Models.Enums
+@using MOBILE.SIGE.Models.FamiliaCaixilho
+@using MOBILE.SIGE.Models.ProducaoFamilia
+@using MOBILE.SIGE.Services
+@using MOBILE.SIGE.Services.Auth
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject ProducaoFamiliaApiService ProducaoApi
+@inject FamiliaCaixilhoApiService FamiliaApi
+@inject FamiliaMedicaoWebClient MedicaoWebClient
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Nav
+
+<div class="producao-page producao-page--detalhe">
+    <button type="button" class="producao-back" @onclick="Voltar">
+        ← Voltar a lista
+    </button>
+
+    <header class="producao-hero">
+        <div class="producao-hero__icon" aria-hidden="true">
+            <img src="Icons/Services.svg" alt="" />
+        </div>
+        <div class="producao-hero__text">
+            <h1>Producao</h1>
+            <p>Gerenciar atividade de producao</p>
+        </div>
+    </header>
+
+    @if (_erro != null)
+    {
+        <div class="producao-callout producao-callout--danger">@_erro</div>
+    }
+    @if (_sucesso != null)
+    {
+        <div class="producao-callout producao-callout--success">@_sucesso</div>
+    }
+
+    @if (_familia != null)
+    {
+        <div class="producao-info-card">
+            <h2>@_familia.DescricaoFamilia</h2>
+            <div class="producao-info-row">
+                <span>Caixilhos</span>
+                <strong>@_familia.QuantidadeCaixilhos</strong>
+            </div>
+            <div class="producao-info-row">
+                <span>Status familia</span>
+                <strong class="producao-status-badge producao-status-badge--@GetFamiliaStatusClass(_familia.StatusFamilia)">
+                    @GetFamiliaStatusText(_familia.StatusFamilia)
+                </strong>
+            </div>
+        </div>
+
+        @* Foto da medição *@
+        @if (_fotoMedicao != null)
+        {
+            <div class="producao-info-card">
+                <h3>Foto da medicao</h3>
+                <p style="font-size:.85rem;opacity:.7;margin:0 0 .5rem;">
+                    Enviada por <strong>@(_fotoMedicao.EnviadoPor ?? "—")</strong>
+                    em @_fotoMedicao.EnviadoEm.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                    @if (_fotoMedicao.Aprovada)
+                    {
+                        <span style="color:#4caf50;font-weight:600;"> — Aprovada</span>
+                    }
+                </p>
+                @if (_mostrarFoto)
+                {
+                    <img src="@_fotoMedicao.FotoBase64" alt="Foto da medicao"
+                         style="width:100%;border-radius:8px;margin-top:.5rem;cursor:pointer;"
+                         @onclick="() => _mostrarFoto = false" />
+                }
+                else
+                {
+                    <button type="button" class="producao-btn producao-btn--outline" @onclick="() => _mostrarFoto = true">
+                        Ver imagem da medicao
+                    </button>
+                }
+            </div>
+        }
+        else if (_carregandoFoto)
+        {
+            <div class="producao-info-card">
+                <h3>Foto da medicao</h3>
+                <p style="opacity:.6;">Carregando foto...</p>
+            </div>
+        }
+
+        @* Detalhes da atividade — visível em TODOS os estados *@
+        @if (_producao != null)
+        {
+            <div class="producao-info-card">
+                <h3>Atividade de producao</h3>
+                <div class="producao-info-row">
+                    <span>Status</span>
+                    <strong class="producao-atividade-status producao-atividade-status--@_producao.Status.ToString().ToLower()">
+                        @GetAtividadeStatusText(_producao.Status)
+                    </strong>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(_producao.NomeResponsavel))
+                {
+                    <div class="producao-info-row">
+                        <span>Responsavel</span>
+                        <strong>@_producao.NomeResponsavel</strong>
+                    </div>
+                }
+                @if (_producao.DataInicio.HasValue)
+                {
+                    <div class="producao-info-row">
+                        <span>Inicio</span>
+                        <strong>@_producao.DataInicio.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+                }
+                @if (_producao.DataEstimadaConclusao.HasValue)
+                {
+                    <div class="producao-info-row">
+                        <span>Previsao</span>
+                        <strong>@_producao.DataEstimadaConclusao.Value.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                }
+                @if (_producao.DataConclusao.HasValue)
+                {
+                    <div class="producao-info-row">
+                        <span>Conclusao</span>
+                        <strong>@_producao.DataConclusao.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_producao.Descricao))
+                {
+                    <div class="producao-info-row producao-info-row--full">
+                        <span>Descricao</span>
+                        <p>@_producao.Descricao</p>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_producao.Observacoes))
+                {
+                    <div class="producao-info-row producao-info-row--full producao-obs-highlight">
+                        <span>Observacoes</span>
+                        <p>@_producao.Observacoes</p>
+                    </div>
+                }
+            </div>
+        }
+
+        @* Ações *@
+        <div class="producao-acoes-card">
+            @if (_producao == null || _producao.Status == StatusAtividade.NaoIniciada)
+            {
+                <h3>Iniciar producao</h3>
+                <div class="producao-form-group">
+                    <label>Descricao (opcional)</label>
+                    <textarea @bind="_descricao" maxlength="200" rows="2" placeholder="Observacao sobre a producao..."></textarea>
+                </div>
+                <div class="producao-form-group">
+                    <label>Previsao de conclusao (opcional)</label>
+                    <input type="date" @bind="_dataEstimada" />
+                </div>
+                <button type="button" class="producao-btn producao-btn--success" @onclick="Iniciar" disabled="@_busy">
+                    @(_busy ? "Iniciando..." : "Iniciar producao")
+                </button>
+            }
+            else if (_producao.Status == StatusAtividade.EmAndamento)
+            {
+                <h3>Finalizar ou pausar</h3>
+                <div class="producao-form-group">
+                    <label>Observacoes</label>
+                    <textarea @bind="_observacoes" maxlength="500" rows="3" placeholder="Descreva o que foi feito, problemas encontrados..."></textarea>
+                </div>
+                <div class="producao-btn-row">
+                    <button type="button" class="producao-btn producao-btn--warning" @onclick="Pausar" disabled="@_busy">
+                        @(_busy ? "Pausando..." : "Pausar")
+                    </button>
+                    <button type="button" class="producao-btn producao-btn--success" @onclick="Finalizar" disabled="@_busy">
+                        @(_busy ? "Finalizando..." : "Finalizar")
+                    </button>
+                </div>
+            }
+            else if (_producao.Status == StatusAtividade.Pausada)
+            {
+                <h3>Producao pausada</h3>
+                <div class="producao-form-group">
+                    <label>Observacoes</label>
+                    <textarea @bind="_observacoes" maxlength="500" rows="3" placeholder="Descreva o que foi feito, problemas encontrados..."></textarea>
+                </div>
+                <div class="producao-btn-row">
+                    <button type="button" class="producao-btn producao-btn--primary" @onclick="Retomar" disabled="@_busy">
+                        @(_busy ? "Retomando..." : "Retomar")
+                    </button>
+                    <button type="button" class="producao-btn producao-btn--success" @onclick="Finalizar" disabled="@_busy">
+                        @(_busy ? "Finalizando..." : "Finalizar")
+                    </button>
+                </div>
+            }
+            else if (_producao.Status == StatusAtividade.Concluida)
+            {
+                <div class="producao-callout producao-callout--success">
+                    Producao concluida com sucesso.
+                </div>
+            }
+        </div>
+    }
+
+
+</div>
+
+<style>
+    .producao-obs-highlight {
+        background: rgba(255,255,255,.06);
+        border-left: 3px solid #4caf50;
+        padding: .75rem 1rem;
+        border-radius: 6px;
+        margin-top: .5rem;
+    }
+    .producao-obs-highlight span {
+        font-weight: 600;
+        color: #4caf50;
+    }
+    .producao-btn--outline {
+        background: transparent;
+        border: 1.5px solid rgba(255,255,255,.3);
+        color: inherit;
+        padding: .6rem 1.2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: .9rem;
+        width: 100%;
+        transition: background .2s;
+    }
+    .producao-btn--outline:hover {
+        background: rgba(255,255,255,.08);
+    }
+</style>
+
+@code {
+    [Parameter] public int FamiliaId { get; set; }
+
+    private FamiliaCaixilhoResponseDto? _familia;
+    private ProducaoFamiliaResponseDto? _producao;
+    private FamiliaMedicaoWebClient.MedicaoFotoResult? _fotoMedicao;
+    private string? _erro;
+    private string? _sucesso;
+    private bool _busy;
+    private bool _carregandoFoto = true;
+    private bool _mostrarFoto;
+    private int _idUsuario;
+
+    private string? _descricao;
+    private string? _observacoes;
+    private DateTime? _dataEstimada;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            var idClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? auth.User.FindFirst("nameid")?.Value;
+            if (!int.TryParse(idClaim, out _idUsuario) || _idUsuario <= 0)
+            {
+                _erro = "Nao foi possivel identificar o utilizador. Inicie sessao novamente.";
+                StateHasChanged();
+                return;
+            }
+
+            _familia = await FamiliaApi.GetByIdAsync(FamiliaId);
+            if (_familia == null)
+            {
+                _erro = "Familia nao encontrada.";
+                StateHasChanged();
+                return;
+            }
+
+            try
+            {
+                _producao = await ProducaoApi.GetByFamiliaAsync(FamiliaId);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _producao = null;
+            }
+
+            // Buscar foto da medição
+            try
+            {
+                _fotoMedicao = await MedicaoWebClient.ObterFotoAsync(FamiliaId);
+            }
+            catch { _fotoMedicao = null; }
+            _carregandoFoto = false;
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _erro = ex.Message;
+            _carregandoFoto = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Iniciar()
+    {
+        _busy = true;
+        _erro = null;
+        _sucesso = null;
+        try
+        {
+            var dto = new ProducaoFamiliaIniciarDto
+            {
+                IdResponsavel = _idUsuario,
+                Descricao = _descricao,
+                DataEstimadaConclusao = _dataEstimada
+            };
+            _producao = await ProducaoApi.IniciarAsync(FamiliaId, dto);
+            _sucesso = "Producao iniciada com sucesso!";
+            _descricao = null;
+            _dataEstimada = null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            _erro = TratarErroBadRequest(ex.Message);
+        }
+        catch (Exception ex) { _erro = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task Pausar()
+    {
+        _busy = true;
+        _erro = null;
+        _sucesso = null;
+        try
+        {
+            var dto = new ProducaoFamiliaPausarDto { Observacoes = _observacoes };
+            _producao = await ProducaoApi.PausarAsync(FamiliaId, dto);
+            _sucesso = "Producao pausada.";
+            _observacoes = null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            _erro = TratarErroBadRequest(ex.Message);
+        }
+        catch (Exception ex) { _erro = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task Finalizar()
+    {
+        _busy = true;
+        _erro = null;
+        _sucesso = null;
+        try
+        {
+            var dto = new ProducaoFamiliaFinalizarDto
+            {
+                Observacoes = _observacoes
+            };
+            _producao = await ProducaoApi.FinalizarAsync(FamiliaId, dto);
+            _sucesso = "Producao finalizada com sucesso!";
+            _observacoes = null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            _erro = TratarErroBadRequest(ex.Message);
+        }
+        catch (Exception ex) { _erro = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task Retomar()
+    {
+        _busy = true;
+        _erro = null;
+        _sucesso = null;
+        try
+        {
+            var dto = new ProducaoFamiliaIniciarDto
+            {
+                IdResponsavel = _idUsuario,
+                Descricao = _descricao
+            };
+            _producao = await ProducaoApi.IniciarAsync(FamiliaId, dto);
+            _sucesso = "Producao retomada!";
+            _descricao = null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            _erro = TratarErroBadRequest(ex.Message);
+        }
+        catch (Exception ex) { _erro = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private string TratarErroBadRequest(string mensagem)
+    {
+        // A API retorna "A família deve estar com status Medida para iniciar a produção."
+        if (mensagem.Contains("Medida", StringComparison.OrdinalIgnoreCase)
+            || mensagem.Contains("status", StringComparison.OrdinalIgnoreCase))
+        {
+            return "A medicao desta familia ainda nao foi aprovada. Aguarde a aprovacao da foto de medicao na web antes de iniciar a producao.";
+        }
+        return mensagem;
+    }
+
+    private void Voltar() => Nav.NavigateTo("/producao");
+
+    private static string GetFamiliaStatusClass(StatusFamilia s) => s switch
+    {
+        StatusFamilia.EmProducao => "progress",
+        StatusFamilia.Medida => "ready",
+        StatusFamilia.Produzida => "done",
+        _ => "default"
+    };
+
+    private static string GetFamiliaStatusText(StatusFamilia s) => s switch
+    {
+        StatusFamilia.EmProducao => "Em producao",
+        StatusFamilia.Medida => "Pronta p/ producao",
+        StatusFamilia.Produzida => "Produzida",
+        _ => s.ToString()
+    };
+
+    private static string GetAtividadeStatusText(StatusAtividade s) => s switch
+    {
+        StatusAtividade.NaoIniciada => "Nao iniciada",
+        StatusAtividade.EmAndamento => "Em andamento",
+        StatusAtividade.Pausada => "Pausada",
+        StatusAtividade.Concluida => "Concluida",
+        _ => s.ToString()
+    };
+}

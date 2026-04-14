@@ -44,7 +44,12 @@ public enum TipoNotificacao
     ObraVerificada = 1,
     FamiliaMedida = 2,
     FamiliaProduzida = 3,
-    ObraConcluida = 4
+    ObraConcluida = 4,
+    ObraCriada = 5,
+    FotoMedicaoEnviada = 6,
+    FotoMedicaoAprovada = 7,
+    ProducaoIniciada = 8,
+    FamiliaParaMedir = 9
 }
 
 /// <summary>Valores alinhados à API (ex.: Medido = 2).</summary>
